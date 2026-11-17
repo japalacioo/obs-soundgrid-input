@@ -63,7 +63,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T19 | Sin abrir el panel con el driver ya configurado | NOT_RUN | Persistencia no documentada por Waves |
 | T20 | Sin driver ni panel (ruta B) | BLOCKED | Protocolo propietario ([NATIVE_FEASIBILITY.md](NATIVE_FEASIBILITY.md)) |
 | T21 | Desconexión sin ruido dañino | NOT_RUN | Diseño: silencio seguro (no se emite nada sin frames) |
-| T22 | Instalar y desinstalar | **PASS** (Windows) / NOT_RUN (macOS) | ZIP con SHA-256 verificado → install.ps1 → archivos → uninstall.ps1 → sin restos |
+| T22 | Instalar y desinstalar | **PASS** (Windows) / NOT_RUN (macOS) | ZIP con SHA-256 verificado → install.ps1 → uninstall.ps1 → sin restos. Instalador `.exe` (Inno Setup): con OBS abierto no instala (código 1); instalación silenciosa como usuario y como administrador (UAC) con código 0, entrada en Aplicaciones y menú Inicio; OBS 33.0.1 carga el plugin; desinstalación sin restos y conservando la configuración del usuario. Sin firma digital |
 | T23 | Las sesiones de OBS se conservan tras actualizar | NOT_RUN | No hay versión anterior. Persistencia nativa probada en T09 |
 | T24 | La mezcla de streaming no altera el FOH | NOT_RUN | Por diseño no hay API de escritura (ADR-006) |
 | T25 | A01 con RMS bajo y fuente ARMED | **PASS** | Reloj virtual: se activa a los 10 s, no antes; evidencia en dBFS |

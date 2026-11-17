@@ -142,7 +142,7 @@ IMPLEMENTADO: ZIP de Windows con install.ps1/uninstall.ps1 + SHA-256; tools/inst
 COMPILACIÓN: dist/obs-soundgrid-input-0.1.0-windows-x64.zip
 PRUEBAS EJECUTADAS: T22 Windows PASS (instalar desde el ZIP con hash verificado, desinstalar sin restos); carga
                     en la GUI de OBS 33.0.1 PASS
-PRUEBAS NO EJECUTADAS: instalador .exe firmado (sin certificado ni herramienta); macOS; T23 (no hay versión
+PRUEBAS NO EJECUTADAS: firma digital del instalador .exe (sin certificado); macOS; T23 (no hay versión
                        anterior); rollback formal
 ALERTAS: documentadas en ALERTS.md
 MONITOREO: n/a

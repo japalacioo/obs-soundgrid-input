@@ -7,7 +7,27 @@
   - Una NIC Gigabit dedicada conectada al switch SoundGrid.
 - Visual C++ Redistributable 2015-2022 x64, que OBS ya instala.
 
-## Windows
+## Windows con el instalador (recomendado)
+1. Copia `obs-soundgrid-input-<versión>-windows-x64-setup.exe` al otro equipo. Puedes verificarlo con el `.sha256` que lo acompaña.
+2. Cierra OBS (el instalador lo detecta y espera).
+3. Ejecuta el instalador y acepta el aviso de Windows (UAC). No está firmado: si SmartScreen lo bloquea, pulsa **Más información > Ejecutar de todas formas**.
+4. Sigue el asistente (español o inglés). Al final indica si encontró el driver Waves SoundGrid.
+5. Abre OBS > Fuentes > **+** > **SoundGrid Input (Waves)**. Si el driver Waves está instalado, la fuente se configura sola con el driver y la tarjeta de red de su Control Panel.
+
+Se instala en `%ProgramData%\obs-studio\plugins\obs-soundgrid-input\` para todos los usuarios, con la guía en el menú Inicio. Se desinstala desde **Configuración > Aplicaciones > OBS SoundGrid Input**; tus escenas y la configuración del plugin se conservan.
+
+Instalación desatendida (por ejemplo, para varios equipos):
+```bash
+obs-soundgrid-input-0.1.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
+Devuelve 0 si se instaló; si OBS está abierto, no instala y devuelve un código distinto de 0.
+
+Para generar el instalador desde el código (requiere Inno Setup 6):
+```bash
+powershell -ExecutionPolicy Bypass -File packaging/windows/build-installer.ps1
+```
+
+## Windows con el ZIP (sin instalador)
 1. Cierra OBS.
 2. Descomprime `obs-soundgrid-input-<versión>-windows-x64.zip`.
 3. Ejecuta `install.ps1` con clic derecho > "Ejecutar con PowerShell", o:

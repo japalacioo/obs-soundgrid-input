@@ -56,7 +56,9 @@ ctest --test-dir build -C Release --output-on-failure
 powershell -ExecutionPolicy Bypass -File tools/install-windows.ps1
 ```
 
-Para empaquetar, ejecuta `packaging/windows/package.ps1`; genera `dist/obs-soundgrid-input-<ver>-windows-x64.zip` y su `.sha256`.
+Para distribuir:
+- **Instalador** (Inno Setup 6): `packaging/windows/build-installer.ps1` genera `dist/obs-soundgrid-input-<ver>-windows-x64-setup.exe` y su `.sha256`. Ver [docs/INSTALL.md](docs/INSTALL.md).
+- **ZIP**: `packaging/windows/package.ps1` genera `dist/obs-soundgrid-input-<ver>-windows-x64.zip` y su `.sha256`.
 
 ## Estructura
 ```
