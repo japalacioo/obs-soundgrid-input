@@ -1,9 +1,12 @@
 #pragma once
 #include "core/SourceSession.h"
+#include "observability/AudioLossBanner.h"
 
 #include <obs-module.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace sg {
 
@@ -16,5 +19,9 @@ void setPluginRuntime(std::shared_ptr<CoreRuntime> rt);
 void registerSoundGridSource();
 // Abre las propiedades (panel "SoundGrid Monitor") de la primera fuente SoundGrid.
 void openSoundGridMonitor();
+// Estado de alertas de todas las fuentes vivas, para el aviso de la ventana principal.
+std::vector<BannerSourceInput> collectBannerInputs();
+// Abre las propiedades de la fuente con ese nombre (o la primera SoundGrid si no existe).
+void openSourcePropertiesByName(const std::string &name);
 
 } // namespace sg

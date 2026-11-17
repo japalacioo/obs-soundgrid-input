@@ -13,6 +13,8 @@ Plugin de OBS Studio para recibir audio de una consola **Waves eMotion LV1 Class
   - Detecta silencio en fuentes armadas, flujo interrumpido, driver perdido, cable desconectado, enlace a 100 Mbps, errores de NIC, latencia medida, cortes y clipping, y confirma la recuperación.
   - Correlaciona causas: un cable suelto produce un incidente, no una cascada.
 - **Reconexión automática** solo del receptor. Nunca toca la consola, el reloj ni el patch.
+- **Aviso rojo en OBS** (Windows) en cuanto se deja de recibir audio, con la causa y la hora; ámbar mientras se verifica la recuperación y verde al recuperarse. Un clic abre el panel.
+- **Configuración guiada:** detecta el driver Waves SoundGrid y la tarjeta de red que usa su Control Panel; los ajustes avanzados de alertas quedan ocultos hasta que se piden.
 - **Panel de estado** con indicadores separados (NIC, driver, patch, audio, consola y latencia). Nunca muestra un único "Conectado".
   - Se abre desde **Herramientas > SoundGrid Monitor**.
 - **Registros locales** sin IP ni MAC: log de OBS, `alerts.jsonl` rotativo y `diagnostics.json`.

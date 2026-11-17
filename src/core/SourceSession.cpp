@@ -322,6 +322,7 @@ SessionStatus SourceSession::status() const
     st.openIncidents = engine_.openIncidents();
     st.configError = configError_;
     st.blocksDelivered = sub_ ? sub_->stats().blocksDelivered.load() : 0;
+    st.notificationsMuted = engine_.notificationsMuted(rt_.clock().nowNs());
     return st;
 }
 

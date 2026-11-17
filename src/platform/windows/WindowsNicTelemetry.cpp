@@ -15,6 +15,7 @@
 
 #include "../INetworkTelemetry.h"
 
+#include <cstdio>
 #include <string>
 
 namespace sg {
@@ -62,6 +63,13 @@ public:
             n.description = wide(r.Description);
             n.isEthernet = ethernet;
             n.isPhysical = physical;
+            if (r.PhysicalAddressLength == 6) {
+                char mac[18];
+                std::snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x", r.PhysicalAddress[0],
+                              r.PhysicalAddress[1], r.PhysicalAddress[2], r.PhysicalAddress[3], r.PhysicalAddress[4],
+                              r.PhysicalAddress[5]);
+                n.mac = mac;
+            }
             bool dup = false;
             for (auto &e : out)
                 dup |= e.id == n.id;

@@ -7,8 +7,9 @@ add_library(sg_core STATIC
   transport/IAudioTransport.h transport/MockTransport.h transport/MockTransport.cpp
   transport/DeviceHub.h transport/DeviceHub.cpp
   transport/TransportManager.h transport/TransportManager.cpp
-  platform/INetworkTelemetry.h
+  platform/INetworkTelemetry.h platform/WavesDriverPrefs.h platform/WavesDriverPrefs.cpp
   observability/HealthSnapshot.h observability/AlertTypes.h
+  observability/AudioLossBanner.h observability/AudioLossBanner.cpp
   observability/AlertEngine.h observability/AlertEngine.cpp
   observability/AlertSink.h observability/AlertSink.cpp
   core/SourceSession.h core/SourceSession.cpp

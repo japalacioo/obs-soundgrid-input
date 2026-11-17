@@ -16,6 +16,7 @@ struct NicInfo {
     std::string description; // modelo del adaptador
     bool isPhysical = false;
     bool isEthernet = false;
+    std::string mac; // "aa:bb:cc:dd:ee:ff" si se conoce; solo para emparejar, nunca se registra
 };
 
 struct NicSample {

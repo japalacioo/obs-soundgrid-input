@@ -17,7 +17,9 @@
 8. **Sin control de la consola ni del reloj.** No cambia la frecuencia, el buffer, el patch, la ganancia, el mute ni las escenas.
 9. **macOS no validado.** El código Core Audio y NIC de macOS está escrito pero no se ha compilado ni probado. Waves desaconseja grabar en Apple Silicon (cortes intermitentes) y más de 32 canales por el Ethernet integrado del Mac.
 10. **Interfaz.**
-    - No hay dock Qt ni notificaciones emergentes (ADR-014). El estado está en las propiedades de la fuente (Herramientas > SoundGrid Monitor) y se refresca con "Actualizar estado".
+    - En Windows, la pérdida de audio se muestra con una barra roja en la parte superior de OBS (ADR-014). En macOS y Linux todavía no: el estado está en las propiedades de la fuente.
+    - No hay dock Qt. El detalle está en las propiedades de la fuente (Herramientas > SoundGrid Monitor) y se refresca con "Actualizar estado".
+    - La barra se superpone a la parte alta de los paneles de OBS mientras dura el aviso.
     - Las alertas sonoras y las notificaciones del SO no están implementadas, aunque el plan las considera opcionales y desactivadas por defecto.
 11. **Distribución.**
     - Windows: el binario no está firmado y no hay instalador `.exe`; se distribuye como ZIP con script de instalación por usuario.

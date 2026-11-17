@@ -39,7 +39,14 @@ add_library(obs-soundgrid-input MODULE
   ObsSettingsStore.h
   ObsSoundGridSource.h ObsSoundGridSource.cpp
   Diagnostics.h Diagnostics.cpp
+  AlertBanner.h
 )
+if(WIN32)
+  target_sources(obs-soundgrid-input PRIVATE AlertBannerWin.cpp)
+  target_link_libraries(obs-soundgrid-input PRIVATE user32 gdi32)
+else()
+  target_sources(obs-soundgrid-input PRIVATE AlertBannerStub.cpp)
+endif()
 target_link_libraries(obs-soundgrid-input PRIVATE sg_core ${_sg_obs_target} ${_sg_fe_target})
 set(SG_PLUGIN_AUTHOR "Joan Palacio")
 target_compile_definitions(obs-soundgrid-input PRIVATE SG_PLUGIN_VERSION="${PROJECT_VERSION}"

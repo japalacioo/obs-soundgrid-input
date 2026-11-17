@@ -182,6 +182,20 @@ int main()
         ++count;
     CHECK(props && count >= 4, "UI", "obs_source_properties construye los grupos");
     {
+        obs_property_t *adv = obs_properties_get(props, "alerts.A02.threshold");
+        CHECK(obs_properties_get(props, "autodetect") && obs_properties_get(props, "banner_enabled") &&
+                  obs_properties_get(props, "summary_text") && adv && !obs_property_visible(adv),
+              "UI", "panel simplificado: detectar, aviso rojo, resumen y umbrales ocultos por defecto");
+        obs_data_t *tmp = obs_data_create();
+        obs_data_set_bool(tmp, "alerts.show_advanced", true);
+        obs_property_modified(obs_properties_get(props, "alerts.show_advanced"), tmp);
+        CHECK(obs_property_visible(adv), "UI", "«Mostrar ajustes avanzados» muestra los umbrales");
+        obs_data_release(tmp);
+        obs_data_t *cur = obs_source_get_settings(src);
+        CHECK(obs_data_get_bool(cur, "banner_enabled"), "UI", "aviso rojo activado por defecto");
+        obs_data_release(cur);
+    }
+    {
         // Cambiar de dispositivo en el diálogo rehace las listas de canal (no deja las del anterior).
         obs_property_t *devp = obs_properties_get(props, "device");
         obs_property_t *ch1 = obs_properties_get(props, "ch_1");

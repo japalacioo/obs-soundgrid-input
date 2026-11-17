@@ -53,6 +53,17 @@ std::string formatStatusText(const SessionStatus &st)
     return os.str();
 }
 
+std::string formatStatusSummary(const SessionStatus &st)
+{
+    std::string s = globalStatusText(st.global);
+    if (!st.configError.empty())
+        return s + " · " + st.configError;
+    s += " · Driver: " + st.indicators.driver + " · Audio: " + st.indicators.audio;
+    if (!st.openIncidents.empty())
+        s += " · " + std::to_string(st.openIncidents.size()) + " alerta(s) activa(s)";
+    return s;
+}
+
 std::string diagnosticsJson(const std::string &sourceName, const SourceConfig &cfg, const SessionStatus &st,
                             const std::string &obsVersion, const std::string &pluginVersion)
 {

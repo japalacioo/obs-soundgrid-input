@@ -46,6 +46,7 @@ struct SessionStatus {
     HealthSnapshot last;
     std::string configError; // mapa de canales inválido, etc.
     uint64_t blocksDelivered = 0;
+    bool notificationsMuted = false; // "Silenciar avisos": la detección sigue activa
 };
 
 class CoreRuntime;

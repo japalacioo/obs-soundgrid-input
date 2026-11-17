@@ -1,4 +1,5 @@
 // Punto de entrada del módulo OBS "obs-soundgrid-input".
+#include "AlertBanner.h"
 #include "ObsSoundGridSource.h"
 
 #include "platform/INetworkTelemetry.h"
@@ -45,6 +46,15 @@ void toolsMenu(void *)
     sg::openSoundGridMonitor();
 }
 
+// El aviso rojo se crea cuando la ventana principal ya existe y se retira antes de cerrarla.
+void onFrontendEvent(enum obs_frontend_event event, void *)
+{
+    if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING)
+        sg::startAlertBanner();
+    else if (event == OBS_FRONTEND_EVENT_EXIT)
+        sg::stopAlertBanner();
+}
+
 } // namespace
 
 bool obs_module_load(void)
@@ -61,6 +71,7 @@ bool obs_module_load(void)
     sg::setPluginRuntime(rt);
     sg::registerSoundGridSource();
     obs_frontend_add_tools_menu_item(obs_module_text("SoundGridMonitor"), toolsMenu, nullptr);
+    obs_frontend_add_event_callback(onFrontendEvent, nullptr);
 
     std::string backends;
     for (const auto &b : rt->transports().backends())
@@ -73,6 +84,8 @@ bool obs_module_load(void)
 
 void obs_module_unload(void)
 {
+    obs_frontend_remove_event_callback(onFrontendEvent, nullptr);
+    sg::stopAlertBanner();
     auto rt = sg::pluginRuntime();
     sg::setPluginRuntime(nullptr);
     if (rt)

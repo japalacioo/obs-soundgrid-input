@@ -22,13 +22,20 @@
   - Reconocer y silenciar.
 - **Telemetría de red pasiva:** enlace, velocidad y errores de la NIC, sin tráfico ni privilegios.
 - **Reconexión automática** solo del receptor: backoff de 1 a 30 s con jitter y detección de bloqueo a 3 s.
+- **Aviso rojo en la parte superior de OBS** (Windows) cuando se pierde el audio; ámbar mientras se verifica la vuelta y verde al recuperarse. Un clic abre el panel de la fuente.
+- **Panel más simple:**
+  - Pasos numerados: 1 · Conexión, 2 · Canales, 3 · Avisos.
+  - Resumen de una línea arriba.
+  - Botón para detectar el driver Waves y la tarjeta de red del Control Panel; las fuentes nuevas se preconfiguran solas.
+  - Umbrales y perfiles ocultos tras "Mostrar ajustes avanzados".
+  - Las listas de canal se actualizan al cambiar de driver.
 - **Panel de estado** con indicadores separados (NIC, driver, patch, audio, LV1 y latencia) y acciones: reconectar, reconocer, silenciar, exportar diagnóstico y simular fallos.
   - Se abre desde **Herramientas > SoundGrid Monitor**.
 - **Registro:** log de OBS + `alerts.jsonl` rotativo + `diagnostics.json`, sin IP ni MAC.
 - **Simulador integrado** de 32 canales: tonos, ruido rosa, silencio, impulsos, clipping y fallo de flujo.
 
 ### Calidad
-- 87 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta), todas PASS.
+- 98 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta), todas PASS.
 - 0 asignaciones en el callback de audio.
 - Resistencia de 2 h con el simulador: 0 cortes, 0 huecos y 0 desbordes en 4 fuentes; memoria +0,1 MB (ver TEST_REPORT).
 - Revisión de concurrencia y tiempo real: 12 hallazgos corregidos con pruebas de regresión (ver REVIEW_2026-11-17).

@@ -1,6 +1,24 @@
 # Alertas A01–A10
 
-Todas las reglas son configurables por fuente (Propiedades > **Alertas**). Los umbrales iniciales salen del plan §4A y del SDD-09 y **deben calibrarse en laboratorio**. Ninguna alerta cambia el audio, el ruteo ni la consola.
+## Aviso en OBS cuando se pierde el audio (Windows)
+
+Si una fuente deja de recibir audio aparece una **barra roja en la parte superior de OBS**, bajo el menú:
+
+| Color | Significado | Reglas |
+|---|---|---|
+| Rojo · "SE PERDIÓ EL AUDIO" | No llega audio. Muestra la fuente, la causa raíz y la hora local | A04 (cable/red) > A03 (driver) > A02 (sin muestras) > A01 (silencio, solo si está activada) |
+| Ámbar · "AUDIO RESTABLECIDO, VERIFICANDO" | El audio volvió y se espera la histéresis (5 s) | — |
+| Verde · "AUDIO RECUPERADO" | Recuperado; desaparece a los 5 s | A10 |
+
+- Un clic en la barra abre el panel de la fuente afectada.
+- Si OBS no está en primer plano, su botón en la barra de tareas parpadea.
+- Se desactiva por fuente con "Mostrar aviso rojo en OBS si se pierde el audio" (activado por defecto). "Silenciar avisos 10 min" también la oculta; la detección sigue.
+- Solo cuentan las fuentes que están en una escena visible (o como audio global).
+- Las demás alertas (red lenta, errores, latencia, clipping, cortes) no muestran la barra: siguen en el panel y en el log.
+
+## Configuración
+
+Todas las reglas son configurables por fuente (Propiedades > **3 · Avisos y alertas** > "Mostrar ajustes avanzados"). Los umbrales iniciales salen del plan §4A y del SDD-09 y **deben calibrarse en laboratorio**. Ninguna alerta cambia el audio, el ruteo ni la consola.
 
 ## Reglas
 

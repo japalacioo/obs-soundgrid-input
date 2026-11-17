@@ -29,10 +29,10 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 | Suite | Resultado |
 |---|---|
-| CTest Release completo (unit, platform, obs, soak) | **87/87 PASS** |
-| Unitarias (`sg_unit_tests`) | 82/82 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md)) |
+| CTest Release completo (unit, platform, obs, soak) | **98/98 PASS** |
+| Unitarias (`sg_unit_tests`) | 93/93 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md) y 11 del aviso de audio perdido) |
 | Plataforma, hardware real no Waves (`sg_platform_tests`) | 3/3 PASS |
-| Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 17/17 comprobaciones PASS (incluye autor del módulo y créditos) · `bnum_allocs` = 0 al cerrar |
+| Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 21/21 comprobaciones PASS (incluye autor, créditos y el panel simplificado) · `bnum_allocs` = 0 al cerrar |
 | OBS 33.0.1 con interfaz (instalación real) | Carga en "Loaded Modules"; init ≈ 1 ms; descarga limpia; OBS sale con código 0 |
 | Resistencia 2 min con 12 hilos de CPU al 100 % | PASS: 0 cortes, 0 huecos, latencia máx 0,19 ms, memoria estable |
 | Resistencia 2 h (simulador en tiempo real) | PASS: 0 cortes, 0 huecos, 0 desbordes; memoria +0,1 MB ([§ Resistencia](#resistencia-2-h)) |
@@ -99,6 +99,22 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T55 | Reapertura con fuentes duplicadas | **PASS** (simulado) | Dos fuentes sobre un hub reabierto reciben audio |
 | T56 | Conflictos de patch L/R con la LV1 | NOT_RUN | |
 | T57 | Cambio de NIC o cable con la LV1 | NOT_RUN | |
+
+## Aviso de audio perdido en OBS (Windows)
+
+Probado en OBS 33.0.1 con interfaz, con una fuente temporal del simulador y su botón "fallo de flujo" (la consola no se tocó):
+
+| Paso | Resultado |
+|---|---|
+| Fallo de flujo activado | Barra roja "SE PERDIÓ EL AUDIO" bajo el menú, con fuente, causa ("el driver dejó de responder") y hora local |
+| Reconexiones del driver sin audio | Sigue en rojo. Antes de una corrección pasaba a ámbar ("restablecido") aunque no llegaban muestras; se corrigió y tiene prueba |
+| Clic en la barra | Abre las propiedades de la fuente afectada, con el resumen en rojo |
+| Fallo desactivado | Ámbar "AUDIO RESTABLECIDO, VERIFICANDO" → verde "AUDIO RECUPERADO" 5 s → oculto (log: RESOLVED A03/A02 y RECOVERED A10) |
+| Alerta que no es pérdida de audio (A05, enlace a 100 Mbps) | Sin barra; el audio siguió llegando |
+| Fuente quitada de la escena | Sin barra (solo cuentan las fuentes visibles en una escena o como audio global) |
+| Cancelar el diálogo de propiedades | Ya no pregunta por "cambios sin guardar" (los textos informativos no se guardan como ajustes) |
+
+Panel: una fuente nueva quedó preconfigurada sola con el driver Waves SoundGrid, la tarjeta de red del Control Panel y las entradas 1 y 2.
 
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).
