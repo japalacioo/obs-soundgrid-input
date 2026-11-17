@@ -28,6 +28,12 @@ gtest_discover_tests(sg_unit_tests DISCOVERY_TIMEOUT 60 PROPERTIES LABELS "unit"
 # Pruebas contra la NIC y los drivers reales de la máquina (sin LV1). Informativas.
 gtest_discover_tests(sg_platform_tests DISCOVERY_TIMEOUT 60 PROPERTIES LABELS "platform")
 
+# Sonda HIL de solo lectura (no es una prueba de CTest): sg_asio_probe SoundGrid 10
+if(WIN32 AND SG_ENABLE_ASIO)
+  add_executable(sg_asio_probe hil/sg_asio_probe.cpp)
+  target_link_libraries(sg_asio_probe PRIVATE sg_core)
+endif()
+
 # Resistencia (Fase 5). En CTest corre 15 s; para la prueba larga: sg_soak 120
 add_executable(sg_soak soak/soak_main.cpp)
 target_link_libraries(sg_soak PRIVATE sg_core)

@@ -8,8 +8,11 @@
 #include <obs-module.h>
 #include <util/platform.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cmath>
+#include <cstdlib>
 #include <cstdio>
 #include <filesystem>
 #include <mutex>
@@ -217,6 +220,45 @@ int main()
     char m10[96];
     std::snprintf(m10, sizeof(m10), "100 ciclos crear/eliminar sin fallo (%.2f s)", secs);
     CHECK(alive, "T10", m10);
+
+    // --- HIL opcional: un driver real (p. ej. SG_HIL_DEVICE="asio:Waves SoundGrid") hasta OBS ---
+    // Solo lectura: el plugin nunca cambia frecuencia, buffer, reloj ni la consola.
+    if (const char *hil = std::getenv("SG_HIL_DEVICE"); hil && *hil) {
+        obs_data_t *hs = obs_data_create();
+        obs_data_set_string(hs, "device", hil);
+        obs_data_set_int(hs, "mode", 1);
+        obs_data_set_int(hs, "ch_1", 0);
+        obs_data_set_int(hs, "ch_2", 1);
+        obs_source_t *hsrc = obs_source_create("soundgrid_input", "SG HIL", hs, nullptr);
+        obs_data_release(hs);
+        Capture hc;
+        obs_source_add_audio_capture_callback(hsrc, captureCb, &hc);
+        const bool hgot = waitSamples(hc, 48000 * 5, 15000);
+        obs_source_remove_audio_capture_callback(hsrc, captureCb, &hc);
+        {
+            std::lock_guard lk(hc.mu);
+            float pl = 0, pr = 0;
+            for (float v : hc.l)
+                pl = std::max(pl, std::fabs(v));
+            for (float v : hc.r)
+                pr = std::max(pr, std::fabs(v));
+            char mh[200];
+            std::snprintf(mh, sizeof(mh), "%s -> OBS: %.1f s recibidos · L pico %.1f / RMS %.1f dBFS · R pico %.1f / RMS %.1f dBFS",
+                          hil, hc.l.size() / 48000.0, pl > 0 ? 20 * std::log10(pl) : -180.0, sgtest::rmsDb(hc.l),
+                          pr > 0 ? 20 * std::log10(pr) : -180.0, sgtest::rmsDb(hc.r));
+            CHECK(hgot && pl > 1e-5f, "HIL-T14", mh);
+            CHECK(hc.monotonic, "HIL-T08", "timestamps crecientes en la salida de OBS con el driver real");
+        }
+        obs_data_t *ha = obs_source_get_settings(hsrc);
+        obs_properties_t *hp = obs_source_properties(hsrc); // refresca el texto de estado
+        obs_properties_destroy(hp);
+        obs_data_release(ha);
+        ha = obs_source_get_settings(hsrc);
+        std::printf("---- estado mostrado en el panel (HIL) ----\n%s\n-------------------------------------------\n",
+                    obs_data_get_string(ha, "status_text"));
+        obs_data_release(ha);
+        obs_source_release(hsrc);
+    }
 
     obs_shutdown();
     std::printf("bnum_allocs al cerrar: %ld\n", bnum_allocs());

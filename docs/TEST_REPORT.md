@@ -55,7 +55,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T11 | Driver ausente, ocupado o incompatible | **PASS** | Simulador (BUSY y NOT_FOUND con reintento) + ASIO real (ReaRoute) |
 | T12 | NIC desconectada/reconectada con audio real | NOT_RUN | Requiere laboratorio. Equivalente simulado `T44_Simulated` PASS |
 | T13 | Cambio de frecuencia o buffer | **PASS** (simulado) / NOT_RUN (real) | `changeSampleRate` en el simulador |
-| T14 | LV1 Main L/R con patch real | NOT_RUN | Sin hardware |
+| T14 | LV1 Main L/R con patch real | **PASS parcial** | 17 nov: audio de la LV1 por el driver Waves V17 hasta OBS (entradas 1–2, −17 dBFS RMS). Falta confirmar con el operador qué está parcheado (L/R distintos) |
 | T15 | Bus y canales 1–8 | NOT_RUN | Sin hardware |
 | T16 | Renombrar canal LV1 | BLOCKED | No hay API autorizada de nombres; el plugin muestra puertos del driver |
 | T17 | 2 h a 48 kHz con LV1 | NOT_RUN | Hay una versión simulada de 2 h (ver abajo), que no la sustituye |
@@ -113,8 +113,17 @@ Una revisión independiente de concurrencia y tiempo real encontró 12 problemas
   - El instalador registra la entrada ASIO solo en `HKLM\SOFTWARE\WOW6432Node\ASIO`, aunque instala y registra la DLL de 64 bits (`System32\SoundGridAsio.dll`). El plugin no la veía; ahora la incluye si su CLSID tiene un servidor COM de 64 bits. Solo lee el registro.
   - Enlace a la consola: primero 100 Mbps (cable defectuoso); tras cambiar el cable, 1 Gbps full duplex sin errores.
   - El SoundGrid Driver Control Panel tiene elegida la NIC correcta (`Ethernet 2`).
-  - `init()` de "Waves SoundGrid ASIO" falla: "Error Initializing (0000048c), Make sure SoundGrid is configured properly and devices are connected to the network". El servicio `SGDawNodeService` registra "Could not Start Kernel Driver Streaming err: -1036". Causa probable: el driver aún no está asignado en la LV1 (Setup > Inventory). **Captura con la LV1: NOT_RUN** (no llegó a transmitir).
-  - Las pruebas fueron de solo lectura: no se cambió nada en la consola ni en el driver.
+  - Antes de asignar el driver, `init()` de "Waves SoundGrid ASIO" fallaba con "Error Initializing (0000048c), Make sure SoundGrid is configured properly and devices are connected to the network". El servicio `SGDawNodeService` registraba "Could not Start Kernel Driver Streaming err: -1036" y dejaba de reintentar.
+  - Tras asignar el driver en la LV1 (Setup > Inventory), el servicio **no reintentó solo**. Hubo que cambiar el puerto a "None" y volver a la NIC en el SoundGrid Driver Control Panel; entonces `ActivateInterface()` devolvió `true`.
+  - **Audio de la LV1 recibido** (sonda `sg_asio_probe SoundGrid 10`, solo lectura):
+    - El driver abre 4 entradas a 48 kHz, buffer de 256, float32, con 8,67 ms de latencia de entrada informada.
+    - 480 000 frames en 10 s (1875 bloques exactos), intervalo máximo entre callbacks 6,5 ms (nominal 5,33 ms), 0 buffers repetidos.
+    - Entradas 1 y 2: pico −10,3 dBFS, RMS −17,1 dBFS, sin clipping. Entradas 3 y 4: silencio digital.
+  - **Hasta OBS** (`SG_HIL_DEVICE="asio:Waves SoundGrid"` con `sg_obs_host_test`, libobs 33.0.1 real):
+    - 5 s recibidos en el callback de captura de OBS: L y R a −10,3 dBFS de pico y −17,2 dBFS RMS. Timestamps crecientes.
+    - El panel muestra "Audio OK", driver STREAMING, 0 desbordes, 0 discontinuidades y ninguna alerta.
+  - **No verificado:** qué envía la LV1 a cada entrada (el patch no se confirmó con el operador), ni duración, reconexión o alertas con la consola real.
+  - No se cambió nada en la consola. En el driver solo se volvió a elegir la misma NIC.
 - **NIC:** de las 12 interfaces Ethernet listadas, solo una es física (Realtek, UP a 1000 Mbps). El selector las ordena con las físicas primero y marca las virtuales.
 
 ## Resistencia (2 h)
