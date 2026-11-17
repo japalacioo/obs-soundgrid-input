@@ -118,6 +118,34 @@ TEST(T52_Session, MapChangeAppliesWithoutReopeningDriver)
     EXPECT_EQ(dominant(col.left, {1000, 7000, 8000}, 48000), 7000.0);
 }
 
+TEST(Session_Regression, ChangingDeviceWhileStreamingDoesNotHang)
+{
+    // Regresión: al cambiar de dispositivo, stopOutput() debía despertar la suscripción
+    // ANTIGUA (en la que espera el hilo de salida), no la nueva. Antes, join() se bloqueaba.
+    SteadyClock &clock = SteadyClock::instance();
+    CoreRuntime rt(clock, std::make_unique<MockNetworkTelemetry>(), "", true);
+    MockConfig mc;
+    mc.realtime = true;
+    rt.transports().setMockConfig(mc);
+    std::atomic<uint64_t> blocks{0};
+    auto s = std::make_shared<SourceSession>(rt, "cambio", [&](const PcmBlock &) { blocks.fetch_add(1); });
+    SourceConfig cfg;
+    cfg.deviceId = "mock:default";
+    s->apply(cfg);
+    ASSERT_TRUE(waitFor([&] { return blocks.load() > 20; }));
+    for (const char *dev : {"", "mock:default", "nope:missing", "mock:default"}) {
+        cfg.deviceId = dev;
+        const auto t0 = std::chrono::steady_clock::now();
+        s->apply(cfg); // con el error, esto no volvía nunca
+        const double ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+        EXPECT_LT(ms, 1000.0) << "apply() tardó " << ms << " ms con dispositivo '" << dev << "'";
+    }
+    const uint64_t before = blocks.load();
+    EXPECT_TRUE(waitFor([&] { return blocks.load() > before + 20; })); // el audio vuelve a fluir
+    s.reset();
+    rt.shutdown();
+}
+
 TEST(T44_Simulated, CablePullRaisesOneCorrelatedIncidentAndRecovers)
 {
     World w;

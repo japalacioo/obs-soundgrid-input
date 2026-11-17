@@ -127,16 +127,20 @@ void SourceSession::startOutput()
     if (!sub)
         return;
     outStop_ = false;
+    outSub_ = sub;
     outThread_ = std::thread([this, sub] { outputLoop(sub); });
 }
 
 void SourceSession::stopOutput()
 {
     outStop_ = true;
-    if (auto sub = subscription())
-        sub->wakeConsumer();
+    // Despertar la suscripción en la que ESPERA el hilo (puede no ser la actual: al cambiar
+    // de dispositivo, apply() ya sustituyó sub_ y la antigua no volverá a recibir datos).
+    if (outSub_)
+        outSub_->wakeConsumer();
     if (outThread_.joinable())
         outThread_.join();
+    outSub_.reset();
 }
 
 void SourceSession::outputLoop(std::shared_ptr<Subscription> sub)

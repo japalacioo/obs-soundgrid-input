@@ -97,6 +97,7 @@ private:
     uint64_t lastDelivered_ = 0;
 
     std::thread outThread_;
+    std::shared_ptr<Subscription> outSub_; // suscripción que consume outThread_ (solo hilo de UI)
     std::atomic<bool> outStop_{false};
 };
 
