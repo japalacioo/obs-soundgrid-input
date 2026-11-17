@@ -43,6 +43,17 @@ Pop-Location
 $incObs = Join-Path $OutDir 'include\libobs'
 if (Test-Path $incObs) { Remove-Item -Recurse -Force $incObs }
 robocopy (Join-Path $src 'libobs') $incObs *.h *.hpp /S /NFL /NDL /NJH /NJS /NP | Out-Null
+# obsconfig.h se genera al compilar OBS; para un plugin bastan los valores de una release.
+@'
+#pragma once
+/* Generado por tools/make-obs-sdk.ps1 para compilar plugins contra una release de OBS. */
+#define OBS_DATA_PATH "../../data"
+#define OBS_PLUGIN_PATH "../../obs-plugins/64bit"
+#define OBS_PLUGIN_DESTINATION "obs-plugins/64bit"
+#define OBS_RELEASE_CANDIDATE 0
+#define OBS_BETA 0
+'@ | Set-Content -Encoding ascii (Join-Path $incObs 'obsconfig.h')
+
 $fe = @('frontend\api', 'UI\obs-frontend-api') | ForEach-Object { Join-Path $src $_ } | Where-Object { Test-Path (Join-Path $_ 'obs-frontend-api.h') } | Select-Object -First 1
 if ($fe) {
     New-Item -ItemType Directory -Force -Path "$OutDir\include\frontend-api" | Out-Null

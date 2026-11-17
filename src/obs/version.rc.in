@@ -1,0 +1,21 @@
+1 VERSIONINFO
+FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "FileDescription", "OBS SoundGrid Input (Waves eMotion LV1 via driver SoundGrid)"
+      VALUE "FileVersion", "@PROJECT_VERSION@"
+      VALUE "ProductName", "OBS SoundGrid Input"
+      VALUE "ProductVersion", "@PROJECT_VERSION@"
+      VALUE "LegalCopyright", "GPLv3. ASIO is a trademark of Steinberg Media Technologies GmbH."
+      VALUE "OriginalFilename", "obs-soundgrid-input.dll"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1200
+  END
+END

@@ -30,9 +30,12 @@ else()
   endif()
 endif()
 
+if(SG_BUILD_TESTS)
+  enable_testing()
+endif()
+
 add_subdirectory(src)
 
 if(SG_BUILD_TESTS)
-  enable_testing()
   add_subdirectory(tests)
 endif()
