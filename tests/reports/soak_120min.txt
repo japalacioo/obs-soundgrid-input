@@ -1,0 +1,20 @@
+﻿# Resistencia 2 h (simulador en tiempo real) - binario anterior a la revisión de código (commit previo a a22aa50)
+# Comando: build/tests/Release/sg_soak.exe 120 128 32 4 0
+
+SOAK: 120.0 min · buffer 128 · 32 canales · 4 fuentes · 0 hilos de carga CPU
+t=     6s frames[0]=265344 desb=0 disc=0 lat_max=0.14ms mem=23.4MB estado=Audio OK
+t=    30s frames[0]=1440000 desb=0 disc=0 lat_max=0.38ms mem=23.5MB estado=Audio OK
+t=    60s frames[0]=2887936 desb=0 disc=0 lat_max=0.38ms mem=23.5MB estado=Audio OK
+t=    90s frames[0]=4330112 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   120s frames[0]=5770880 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+...
+
+==== RESUMEN (7200.1 s) ====
+fuente 0: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 1: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 2: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 3: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+latencia medida máx (callback->entrega): 15.80 ms
+memoria: tras calentamiento 23.4 MB · máx 23.6 MB · final 23.6 MB (crecimiento 0.1 MB)
+alertas notificadas: 0 · eventos descartados por cola llena: 0
+RESULTADO: PASS

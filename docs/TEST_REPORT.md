@@ -29,13 +29,14 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 | Suite | Resultado |
 |---|---|
-| CTest Release completo (unit, platform, obs, soak) | **80/80 PASS** |
-| Unitarias (`sg_unit_tests`) | 75/75 PASS |
+| CTest Release completo (unit, platform, obs, soak) | **87/87 PASS** |
+| Unitarias (`sg_unit_tests`) | 82/82 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md)) |
 | Plataforma, hardware real no Waves (`sg_platform_tests`) | 3/3 PASS |
 | Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 15/15 comprobaciones PASS · `bnum_allocs` = 0 al cerrar |
 | OBS 33.0.1 con interfaz (instalación real) | Carga en "Loaded Modules"; init ≈ 1 ms; descarga limpia; OBS sale con código 0 |
 | Resistencia 2 min con 12 hilos de CPU al 100 % | PASS: 0 cortes, 0 huecos, latencia máx 0,19 ms, memoria estable |
-| Resistencia 2 h (simulador en tiempo real) | Ver [§ Resistencia](#resistencia-2-h) |
+| Resistencia 2 h (simulador en tiempo real) | PASS: 0 cortes, 0 huecos, 0 desbordes; memoria +0,1 MB ([§ Resistencia](#resistencia-2-h)) |
+| Resistencia 30 min con el binario corregido y carga de CPU | PASS: 0 cortes, latencia máx 0,66 ms |
 
 ## T01–T57
 
@@ -47,7 +48,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T04 | 2–32 canales sin cruces | **PASS** | Simulador de 32 canales, 4 fuentes × 8 canales, frecuencia única por canal |
 | T05 | Conversión de formatos | **PASS** | int16/24/32 LE y BE, int32 con 24 bits, float32/64, entrelazado → planar; formato no soportado da silencio seguro |
 | T06 | 48↔96 kHz | **PASS** (núcleo) | Los bloques llevan la frecuencia del driver y el cambio se marca como discontinuidad. Remuestreo de OBS a 96 kHz: NOT_RUN |
-| T07 | Buffer vacío y desbordado | **PASS** | Desbordes contados sin bloqueo; productor y consumidor concurrentes (20 000 bloques) sin corrupción |
+| T07 | Buffer vacío y desbordado | **PASS** | Desbordes contados una sola vez y sin bloqueo; productor y consumidor concurrentes (20 000 bloques) sin corrupción |
 | T08 | Timestamps crecientes | **PASS** | Unitarias (jitter ±2 ms, saltos, re-anclaje) + host (monotonía tras OBS) |
 | T09 | Guardar y reabrir la fuente | **PASS** | `obs_save_source`/`obs_load_source` en libobs real |
 | T10 | Crear/eliminar 100 veces | **PASS** | Host libobs (0,82 s) + unitaria con simulador en tiempo real |
@@ -99,6 +100,9 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T56 | Conflictos de patch L/R con la LV1 | NOT_RUN | |
 | T57 | Cambio de NIC o cable con la LV1 | NOT_RUN | |
 
+## Revisión de código
+Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).
+
 ## Hallazgos con hardware real (no Waves)
 - **ReaRoute ASIO x64 sin REAPER abierto:**
   - Abre 16 canales a 48 kHz en int32 con buffer de 1024.
@@ -111,7 +115,31 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 Simulador en tiempo real: 32 canales a 48 kHz, buffer de 128, 4 fuentes (estéreo, mono-suma, 8 canales y estéreo alto) y monitor y alertas activos. **No sustituye a T17.**
 
-Resultado: *se completa al terminar la ejecución; ver `tests/reports/soak_120min.txt`.*
+**Resultado: PASS** (7200,1 s; resumen en `tests/reports/soak_120min.txt`, salida completa en `tests/reports/soak_120min_raw.txt`).
+
+| Métrica | Valor |
+|---|---|
+| Frames por segundo, 4 fuentes | 48 000 exactos (345 604 736 frames en la fuente 0) |
+| Huecos de timestamp / discontinuidades / desbordes | 0 / 0 / 0 en las 4 fuentes |
+| Latencia medida callback → entrega | Máx 15,80 ms, un único pico entre los segundos 60 y 90 (antes, máx 0,38 ms). Queda muy por debajo del umbral de A07 (80 ms) y no produjo cortes |
+| Memoria | 23,4 MB tras calentamiento, máx 23,6 MB (crecimiento 0,1 MB en 2 h) |
+| Alertas notificadas / eventos descartados | 0 / 0 |
+
+Esta ejecución usó el binario **anterior** a la revisión de código, porque empezó antes que ella. Por eso se repitió con el binario corregido.
+
+### Repetición con el binario corregido (30 min, 4 hilos de carga de CPU)
+
+**Resultado: PASS** (1800,4 s; `tests/reports/soak_30min_fixed_raw.txt`). Comando: `sg_soak.exe 30 128 32 4 4`.
+
+| Métrica | Valor |
+|---|---|
+| Frames por segundo, 4 fuentes | 48 000 exactos |
+| Huecos / discontinuidades / desbordes | 0 / 0 / 0 en las 4 fuentes |
+| Latencia medida callback → entrega | Máx 0,66 ms |
+| Memoria | 23,5 MB tras calentamiento, máx 23,7 MB (crecimiento 0,1 MB) |
+| Alertas notificadas / eventos descartados | 0 / 0 |
+
+Además, OBS 33.0.1 con interfaz cargó el DLL corregido instalado desde ProgramData: `obs_init_module` tardó 0,68 ms, la descarga fue limpia y OBS salió con código 0.
 
 ## Limitaciones de este informe
 - Las pruebas de macOS no se ejecutaron: no hay Mac. El código Core Audio y NIC de macOS no se ha compilado.

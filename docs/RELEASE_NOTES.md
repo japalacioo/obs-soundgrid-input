@@ -26,9 +26,10 @@
 - **Simulador integrado** de 32 canales: tonos, ruido rosa, silencio, impulsos, clipping y fallo de flujo.
 
 ### Calidad
-- 80 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta).
+- 87 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta), todas PASS.
 - 0 asignaciones en el callback de audio.
-- Resistencia de 2 h con el simulador (ver TEST_REPORT).
+- Resistencia de 2 h con el simulador: 0 cortes, 0 huecos y 0 desbordes en 4 fuentes; memoria +0,1 MB (ver TEST_REPORT).
+- Revisión de concurrencia y tiempo real: 12 hallazgos corregidos con pruebas de regresión (ver REVIEW_2026-11-17).
 
 ### Limitaciones
 Ver [LIMITATIONS.md](LIMITATIONS.md). Requiere el driver de Waves. La ruta sin driver está bloqueada por el protocolo propietario.

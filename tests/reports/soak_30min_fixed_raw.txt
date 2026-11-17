@@ -1,0 +1,72 @@
+﻿SOAK: 30.0 min · buffer 128 · 32 canales · 4 fuentes · 4 hilos de carga CPU
+t=     6s frames[0]=263936 desb=0 disc=0 lat_max=0.13ms mem=23.5MB estado=Audio OK
+t=    30s frames[0]=1441408 desb=0 disc=0 lat_max=0.31ms mem=23.6MB estado=Audio OK
+t=    60s frames[0]=2883712 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=    90s frames[0]=4325504 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   120s frames[0]=5767296 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   150s frames[0]=7209344 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   180s frames[0]=8651264 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   210s frames[0]=10093056 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   240s frames[0]=11534976 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   270s frames[0]=12976768 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   300s frames[0]=14418944 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   330s frames[0]=15860864 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   360s frames[0]=17302784 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   390s frames[0]=18720640 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   420s frames[0]=20162688 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   450s frames[0]=21604864 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   480s frames[0]=23046528 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   510s frames[0]=24488576 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   540s frames[0]=25930240 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   570s frames[0]=27372160 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   600s frames[0]=28813952 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=   630s frames[0]=30255872 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=   660s frames[0]=31697920 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=   690s frames[0]=33139712 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   720s frames[0]=34581504 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   750s frames[0]=36023552 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   780s frames[0]=37441536 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   810s frames[0]=38883456 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   840s frames[0]=40325376 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   870s frames[0]=41767168 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   900s frames[0]=43209472 desb=0 disc=0 lat_max=0.66ms mem=23.6MB estado=Audio OK
+t=   930s frames[0]=44651520 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=   960s frames[0]=46093696 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=   990s frames[0]=47535744 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1020s frames[0]=48977792 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1050s frames[0]=50419712 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1080s frames[0]=51861888 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1110s frames[0]=53303808 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1140s frames[0]=54721920 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1170s frames[0]=56163968 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1200s frames[0]=57605760 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1230s frames[0]=59047680 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1260s frames[0]=60489728 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1290s frames[0]=61931776 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1320s frames[0]=63373440 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1350s frames[0]=64815616 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1380s frames[0]=66257664 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1410s frames[0]=67699840 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1440s frames[0]=69141632 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1470s frames[0]=70583680 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1500s frames[0]=72001664 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1530s frames[0]=73443456 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1560s frames[0]=74885376 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1590s frames[0]=76327424 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1620s frames[0]=77769600 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1650s frames[0]=79211648 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1680s frames[0]=80653568 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1710s frames[0]=82095360 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1740s frames[0]=83537280 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1770s frames[0]=84979072 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+t=  1800s frames[0]=86420864 desb=0 disc=0 lat_max=0.66ms mem=23.7MB estado=Audio OK
+
+==== RESUMEN (1800.4 s) ====
+fuente 0: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 1: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 2: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+fuente 3: 48000 frames/s · huecos de timestamp 0 · discontinuidades marcadas 0 · desbordes 0 · estado Audio OK
+latencia medida máx (callback->entrega): 0.66 ms
+memoria: tras calentamiento 23.5 MB · máx 23.7 MB · final 23.6 MB (crecimiento 0.1 MB)
+alertas notificadas: 0 · eventos descartados por cola llena: 0
+RESULTADO: PASS

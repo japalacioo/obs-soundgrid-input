@@ -121,7 +121,8 @@ ESTADO: PARTIAL
 IMPLEMENTADO: sg_soak (resistencia en tiempo real con métricas); pruebas de estrés y tiempo real
 COMPILACIÓN: Release OK
 PRUEBAS EJECUTADAS: T42 (12 hilos de CPU al 100 %, 2 min): 0 cortes, 0 huecos, latencia máx 0,19 ms;
-                    resistencia simulada de 2 h (ver TEST_REPORT); T48 0 asignaciones; T49 30 s
+                    resistencia simulada de 2 h PASS (4 fuentes, 0 cortes/huecos/desbordes, memoria +0,1 MB,
+                    latencia máx 15,8 ms en un único pico); T48 0 asignaciones; T49 30 s
 PRUEBAS NO EJECUTADAS: 48/96 kHz y 2–128 canales con LV1; latencia de extremo a extremo con impulsos; 8 h con LV1
 ALERTAS: matriz A01–A10 validada con simulador; estabilidad ante pausas (T26: 60 s de silencio sin alerta)
 MONITOREO: memoria ~24 MB estable; CPU no perfilada de forma aislada
