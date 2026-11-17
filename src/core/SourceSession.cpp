@@ -18,10 +18,20 @@ SourceSession::SourceSession(CoreRuntime &rt, std::string name, OutputFn out)
 
 SourceSession::~SourceSession()
 {
+    shutdown();
+}
+
+void SourceSession::shutdown()
+{
+    // Síncrono: al volver, el hilo de salida terminó y la suscripción está retirada. La capa OBS
+    // lo llama en destroy() aunque el monitor aún conserve una referencia a la sesión.
     stopOutput();
     std::shared_ptr<DeviceHub> hub;
     {
         std::lock_guard lk(mu_);
+        if (shut_)
+            return;
+        shut_ = true;
         if (hub_ && sub_)
             hub_->unsubscribe(sub_);
         hub = hub_;
@@ -63,12 +73,21 @@ std::vector<ChannelInfo> SourceSession::deviceChannels() const
 
 void SourceSession::apply(const SourceConfig &cfg)
 {
-    std::shared_ptr<DeviceHub> oldHub;
-    bool restartOutput = false;
+    bool deviceChanged;
     {
         std::lock_guard lk(mu_);
-        const bool deviceChanged = cfg.deviceId != cfg_.deviceId || (!cfg.enabled) != (!cfg_.enabled) || !hub_;
-        const bool restartGrace = deviceChanged;
+        if (shut_)
+            return;
+        deviceChanged = !applied_ || cfg.deviceId != cfg_.deviceId || cfg.enabled != cfg_.enabled;
+    }
+    // Detener el hilo de salida ANTES de cambiar la suscripción (apply/shutdown: hilo de UI).
+    if (deviceChanged)
+        stopOutput();
+
+    std::shared_ptr<DeviceHub> oldHub;
+    {
+        std::lock_guard lk(mu_);
+        applied_ = true;
         engine_.setConfig(cfg.alerts);
 
         std::string why;
@@ -78,18 +97,17 @@ void SourceSession::apply(const SourceConfig &cfg)
             configError_ = why;
 
         if (deviceChanged) {
-            restartOutput = true;
             if (hub_ && sub_)
                 hub_->unsubscribe(sub_);
             oldHub = hub_;
             hub_.reset();
             sub_.reset();
+            deviceName_.clear();
+            deviceLooksSoundGrid_ = false;
             if (cfg.enabled && !cfg.deviceId.empty()) {
-                hub_ = rt_.transports().acquire(cfg.deviceId);
-                if (hub_)
-                    sub_ = hub_->subscribe(cfg.map);
-                deviceName_.clear();
-                deviceLooksSoundGrid_ = false;
+                auto [hub, sub] = rt_.transports().acquireAndSubscribe(cfg.deviceId, cfg.map);
+                hub_ = hub;
+                sub_ = sub;
                 for (const auto &d : rt_.transports().enumerate(TransportManager::backendOf(cfg.deviceId)))
                     if (d.id == cfg.deviceId) {
                         deviceName_ = d.name;
@@ -104,13 +122,11 @@ void SourceSession::apply(const SourceConfig &cfg)
             hub_->updateMap(sub_, cfg.map); // sin reabrir el driver (T52)
         }
         cfg_ = cfg;
-        if (restartGrace)
-            engine_.restart(rt_.clock().nowNs());
+        if (deviceChanged)
+            engine_.restart(rt_.clock().nowNs()); // gracia solo al cambiar de dispositivo
     }
-    if (restartOutput) {
-        stopOutput();
+    if (deviceChanged)
         startOutput();
-    }
     if (oldHub)
         rt_.transports().releaseIfUnused(oldHub);
 }
@@ -228,6 +244,8 @@ HealthSnapshot SourceSession::buildSnapshot(int64_t now)
 std::vector<AlertEvent> SourceSession::tick(int64_t nowNs)
 {
     std::lock_guard lk(mu_);
+    if (shut_)
+        return {}; // fuente destruida: el monitor puede conservar una referencia un tick más
     last_ = buildSnapshot(nowNs);
     return engine_.evaluate(last_);
 }

@@ -323,10 +323,10 @@ public:
             return;
         com_->call([&] { return asio_->lpVtbl->stop(asio_); });
         running_ = false;
-        sink_.store(nullptr, std::memory_order_release);
-        // Por contrato ASIO, tras stop() no hay más bufferSwitch; esperamos por si un
-        // callback ya estaba en curso.
-        for (int i = 0; i < 200 && inCallback_.load(); ++i)
+        sink_.store(nullptr, std::memory_order_seq_cst);
+        // Por contrato ASIO, tras stop() no hay más bufferSwitch; esperamos por si un callback ya
+        // estaba en curso (seq_cst: emparejado con la marca inCallback_ del hilo de audio).
+        for (int i = 0; i < 200 && inCallback_.load(std::memory_order_seq_cst); ++i)
             Sleep(1);
         if (open_)
             state_ = TransportState::Configured;
@@ -544,7 +544,8 @@ private:
     // --- Tiempo real ---
     void onBufferSwitch(long index) noexcept
     {
-        inCallback_.store(true, std::memory_order_release);
+        inCallback_.store(true, std::memory_order_seq_cst);
+        IASIO *const drv = asio_; // copia local: close() lo pone a nullptr tras stop()
         const int64_t now = clock_->nowNs();
         const uint32_t frames = bufFrames_;
         const long half = index & 1;
@@ -563,7 +564,7 @@ private:
         callbacks_.fetch_add(1, std::memory_order_relaxed);
         frames_.fetch_add(frames, std::memory_order_relaxed);
         lastCallbackNs_.store(now, std::memory_order_relaxed);
-        if (ICaptureSink *s = sink_.load(std::memory_order_acquire)) {
+        if (ICaptureSink *s = sink_.load(std::memory_order_seq_cst)) {
             CaptureBlockView v;
             v.planes = planes_.data();
             v.channels = channelCount_;
@@ -572,9 +573,9 @@ private:
             v.callbackTimeNs = now;
             s->onCapture(v);
         }
-        if (postOutput_)
-            asio_->lpVtbl->outputReady(asio_);
-        inCallback_.store(false, std::memory_order_release);
+        if (postOutput_ && drv)
+            drv->lpVtbl->outputReady(drv);
+        inCallback_.store(false, std::memory_order_seq_cst);
     }
 
     void onSampleRateChanged(double rate) noexcept

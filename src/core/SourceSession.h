@@ -61,6 +61,9 @@ public:
     SourceConfig config() const;
     void rename(const std::string &name);
     void reconnect();                    // acción "Reconectar" (solo receptor; nunca la consola)
+    // Cierre síncrono e idempotente: detiene la salida y retira la suscripción. Tras volver, la
+    // sesión no vuelve a llamar a OutputFn aunque otros hilos conserven una referencia.
+    void shutdown();
 
     // Monitor (hilo de monitorización): instantánea + evaluación de reglas.
     std::vector<AlertEvent> tick(int64_t nowNs);
@@ -90,6 +93,8 @@ private:
     std::shared_ptr<DeviceHub> hub_;
     std::shared_ptr<Subscription> sub_;
     std::string configError_;
+    bool shut_ = false;
+    bool applied_ = false;
     std::string deviceName_;
     bool deviceLooksSoundGrid_ = false;
     AlertEngine engine_;

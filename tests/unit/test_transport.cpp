@@ -144,7 +144,7 @@ TEST(T07_Hub, OverflowWithoutConsumerIsCountedAndMarked)
     uint32_t flags = 0;
     Fixture::drain(*sub, nullptr, &flags);
     EXPECT_TRUE(flags & kBlockDiscontinuity);
-    EXPECT_GE(sub->stats().discontinuities.load(), 1u);
+    EXPECT_EQ(sub->stats().discontinuities.load(), 0u); // el desborde ya se contó en overflows (R12)
 }
 
 TEST(T11_Driver, BusyAndMissingDriverAreReportedAndRetried)

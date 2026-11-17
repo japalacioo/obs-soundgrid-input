@@ -131,9 +131,12 @@ TEST(T49_FrozenConsumer, BlockedOutputDoesNotBlockDriverCallback)
     rt.transports().setMockConfig(mc);
     std::atomic<bool> freeze{true};
     std::atomic<uint64_t> delivered{0};
-    auto s = std::make_shared<SourceSession>(rt, "congelada", [&](const PcmBlock &) {
+    std::atomic<bool> sawGapFlag{false};
+    auto s = std::make_shared<SourceSession>(rt, "congelada", [&](const PcmBlock &b) {
         while (freeze.load())
             std::this_thread::sleep_for(std::chrono::milliseconds(5)); // OBS/UI bloqueado
+        if (b.flags & kBlockDiscontinuity)
+            sawGapFlag = true;
         delivered.fetch_add(1);
     });
     SourceConfig cfg;
@@ -156,7 +159,7 @@ TEST(T49_FrozenConsumer, BlockedOutputDoesNotBlockDriverCallback)
     freeze = false;
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
     EXPECT_GT(delivered.load(), 10u); // se recupera
-    EXPECT_GE(s->subscription()->stats().discontinuities.load(), 1u); // el hueco queda marcado
+    EXPECT_TRUE(sawGapFlag.load()); // el hueco llega marcado a OBS (contado una vez, en overflows)
     s.reset();
     rt.shutdown();
 }

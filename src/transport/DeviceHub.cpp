@@ -35,7 +35,7 @@ void Subscription::release(int64_t handoffNowNs)
 
 void Subscription::writeRt(const CaptureBlockView &b, uint64_t ts, uint32_t extraFlags) noexcept
 {
-    const ChannelMap &map = maps_[active_.load(std::memory_order_acquire)];
+    const ChannelMap &map = maps_[active_.load(std::memory_order_seq_cst)];
     const uint32_t outCh = map.outputChannels();
     uint32_t offset = 0;
     uint64_t chunkTs = ts;
@@ -43,9 +43,11 @@ void Subscription::writeRt(const CaptureBlockView &b, uint64_t ts, uint32_t extr
         const uint32_t n = std::min(b.frames - offset, ring_.maxFrames());
         PcmBlock *blk = ring_.acquireWrite();
         if (!blk) {
+            // Desborde: se cuenta UNA vez (overflows). El siguiente bloque entregado lleva la
+            // marca de discontinuidad para OBS, pero no se vuelve a contar en A08.
             stats_.overflows.fetch_add(1, std::memory_order_relaxed);
-            pendingDiscontinuity_ = true; // el siguiente bloque entregado marca el hueco
-            return;
+            pendingDiscontinuity_ = true;
+            break;
         }
         applyChannelMap(map, b.planes, b.channels, n, offset, blk->planes);
         blk->frames = n;
@@ -53,8 +55,9 @@ void Subscription::writeRt(const CaptureBlockView &b, uint64_t ts, uint32_t extr
         blk->sampleRate = b.sampleRate;
         blk->timestampNs = chunkTs;
         blk->captureTimeNs = b.callbackTimeNs;
-        blk->flags = b.flags | extraFlags | (pendingDiscontinuity_ ? kBlockDiscontinuity : 0u);
-        if (blk->flags & kBlockDiscontinuity)
+        const uint32_t own = b.flags | extraFlags; // discontinuidades de origen (driver/timestamps)
+        blk->flags = own | (pendingDiscontinuity_ ? kBlockDiscontinuity : 0u);
+        if (own & kBlockDiscontinuity)
             stats_.discontinuities.fetch_add(1, std::memory_order_relaxed);
         pendingDiscontinuity_ = false;
         extraFlags = 0;
@@ -89,11 +92,13 @@ DeviceHub::~DeviceHub()
 std::shared_ptr<Subscription> DeviceHub::subscribe(const ChannelMap &map)
 {
     std::lock_guard lk(mu_);
+    if (shutdown_)
+        return nullptr;
     for (std::size_t i = 0; i < kMaxSubs; ++i) {
         if (!owners_[i]) {
             auto s = std::make_shared<Subscription>(nextSubId_++, map);
             owners_[i] = s;
-            rtSubs_[i].store(s.get(), std::memory_order_release);
+            rtSubs_[i].store(s.get(), std::memory_order_seq_cst);
             wantRunning_ = true;
             return s;
         }
@@ -108,11 +113,16 @@ void DeviceHub::unsubscribe(const std::shared_ptr<Subscription> &s)
     std::lock_guard lk(mu_);
     for (std::size_t i = 0; i < kMaxSubs; ++i) {
         if (owners_[i] == s) {
-            rtSubs_[i].store(nullptr, std::memory_order_release);
-            waitForCallbackBoundary(); // el RT ya no puede tocar la suscripción
+            rtSubs_[i].store(nullptr, std::memory_order_seq_cst);
+            // Solo se libera si el callback en curso (si lo hay) terminó. Si el driver está
+            // colgado dentro del callback, la suscripción queda aparcada hasta que el stream se
+            // detenga (stopAndClose) y nunca se libera memoria que el RT pueda estar usando.
+            if (!waitForCallbackBoundary())
+                parked_.push_back(owners_[i]);
             owners_[i].reset();
         }
     }
+    s->wakeConsumer(); // por si un consumidor sigue esperando datos de esta suscripción
     wantRunning_ = std::any_of(owners_.begin(), owners_.end(), [](auto &o) { return o != nullptr; });
 }
 
@@ -121,12 +131,13 @@ void DeviceHub::updateMap(const std::shared_ptr<Subscription> &s, const ChannelM
     if (!s)
         return;
     std::lock_guard lk(mu_);
-    const int cur = s->active_.load(std::memory_order_acquire);
+    const int cur = s->active_.load(std::memory_order_seq_cst);
     const int next = cur ^ 1;
+    // maps_[next] puede estar en uso si la barrera anterior venció: esperar antes de escribir.
+    if (!waitForCallbackBoundary())
+        return; // driver colgado: no tocar el mapa (se reintenta en el siguiente update)
     s->maps_[next] = map;
-    s->active_.store(next, std::memory_order_release);
-    // Antes de que otra actualización reescriba maps_[cur], el RT debe haber terminado
-    // cualquier callback que lo estuviera usando.
+    s->active_.store(next, std::memory_order_seq_cst);
     waitForCallbackBoundary();
 }
 
@@ -136,35 +147,49 @@ std::size_t DeviceHub::subscriberCount() const
     return static_cast<std::size_t>(std::count_if(owners_.begin(), owners_.end(), [](auto &o) { return o != nullptr; }));
 }
 
-void DeviceHub::waitForCallbackBoundary()
+bool DeviceHub::isShutdown() const
 {
-    if (!inCallback_.load(std::memory_order_acquire))
-        return;
-    const uint64_t epoch = callbackEpoch_.load(std::memory_order_acquire);
+    std::lock_guard lk(mu_);
+    return shutdown_;
+}
+
+bool DeviceHub::waitForCallbackBoundary()
+{
+    // Protocolo tipo Dekker con seq_cst: el control publica el cambio (store seq_cst) y luego lee
+    // inCallback_; el RT marca inCallback_ (store seq_cst) y luego lee las ranuras. El orden
+    // total seq_cst impide que ambos lean el valor antiguo.
+    if (!inCallback_.load(std::memory_order_seq_cst))
+        return true;
+    const uint64_t epoch = callbackEpoch_.load(std::memory_order_seq_cst);
     const int64_t deadline = SteadyClock::instance().nowNs() + 200 * kNsPerMs;
-    while (inCallback_.load(std::memory_order_acquire) && callbackEpoch_.load(std::memory_order_acquire) == epoch) {
+    while (inCallback_.load(std::memory_order_seq_cst) &&
+           callbackEpoch_.load(std::memory_order_seq_cst) == epoch) {
         if (SteadyClock::instance().nowNs() > deadline)
-            break; // driver colgado dentro del callback: no bloquear OBS indefinidamente
+            return false; // driver colgado dentro del callback
         std::this_thread::yield();
     }
+    return true;
 }
 
 void DeviceHub::onCapture(const CaptureBlockView &b) noexcept
 {
-    inCallback_.store(true, std::memory_order_release);
+    inCallback_.store(true, std::memory_order_seq_cst);
     // El callback llega al final del bloque: el primer frame se capturó ~frames/rate antes.
     const int64_t blockNs =
         b.sampleRate ? static_cast<int64_t>(static_cast<double>(b.frames) * 1e9 / b.sampleRate) : 0;
     const auto ts = smoother_.next(b.callbackTimeNs - blockNs, b.frames, b.sampleRate);
+    bool disc = ts.discontinuity;
+    if (markNextDiscontinuity_.load(std::memory_order_relaxed) && markNextDiscontinuity_.exchange(false))
+        disc = true; // primer bloque tras una reapertura: hubo un hueco
     if (ts.discontinuity)
         resyncs_.fetch_add(1, std::memory_order_relaxed);
-    const uint32_t extra = ts.discontinuity ? kBlockDiscontinuity : 0u;
+    const uint32_t extra = disc ? kBlockDiscontinuity : 0u;
     for (auto &slot : rtSubs_) {
-        if (Subscription *s = slot.load(std::memory_order_acquire))
+        if (Subscription *s = slot.load(std::memory_order_seq_cst))
             s->writeRt(b, ts.timestampNs, extra);
     }
-    callbackEpoch_.fetch_add(1, std::memory_order_acq_rel);
-    inCallback_.store(false, std::memory_order_release);
+    callbackEpoch_.fetch_add(1, std::memory_order_seq_cst);
+    inCallback_.store(false, std::memory_order_seq_cst);
 }
 
 Result DeviceHub::openAndStart()
@@ -174,13 +199,18 @@ Result DeviceHub::openAndStart()
     Result r = transport_->open(cfg);
     if (!r.ok())
         return r;
-    smoother_.reset();
+    smoother_.reset(); // el stream está detenido: el RT no lo usa ahora
+    bool reopen;
+    {
+        std::lock_guard lk(mu_);
+        reopen = everOpened_;
+    }
+    markNextDiscontinuity_.store(reopen);
     r = transport_->start(this);
     if (!r.ok()) {
         transport_->close();
         return r;
     }
-    running_ = true;
     lastCallbacksSeen_ = transport_->snapshot().callbacks;
     lastProgressNs_ = clock_.nowNs();
     return r;
@@ -188,10 +218,10 @@ Result DeviceHub::openAndStart()
 
 void DeviceHub::stopAndClose()
 {
-    if (running_)
-        transport_->stop(); // al volver no hay más callbacks
+    transport_->stop(); // al volver no hay más callbacks
     transport_->close();
-    running_ = false;
+    std::lock_guard lk(mu_);
+    parked_.clear(); // ya no hay callbacks: las suscripciones aparcadas se pueden liberar
 }
 
 int64_t DeviceHub::computeBackoffMs(uint32_t attempt)
@@ -208,112 +238,155 @@ int64_t DeviceHub::computeBackoffMs(uint32_t attempt)
 
 void DeviceHub::poll()
 {
-    std::lock_guard lk(mu_);
+    std::lock_guard op(opMu_);
     const int64_t now = clock_.nowNs();
+    bool want, running, inRetry, gaveUp;
+    uint32_t attempt;
+    int64_t nextRetry;
+    {
+        std::lock_guard lk(mu_);
+        if (shutdown_)
+            return;
+        want = wantRunning_;
+        running = running_;
+        inRetry = inRetry_;
+        gaveUp = gaveUp_;
+        attempt = attempt_;
+        nextRetry = nextRetryNs_;
+    }
 
-    if (!wantRunning_) {
-        if (running_)
+    if (!want) {
+        if (running)
             stopAndClose();
+        std::lock_guard lk(mu_);
+        running_ = false;
         inRetry_ = false;
+        gaveUp_ = false;
         attempt_ = 0;
         return;
     }
 
-    if (running_) {
+    if (running) {
         const uint32_t ev = transport_->takeEvents();
         const TransportStatus st = transport_->snapshot();
-        bool needReopen = false;
-        if (ev & (kEvtDeviceLost | kEvtResetRequested))
-            needReopen = true;
-        if (st.state == TransportState::Error)
-            needReopen = true;
-        // Bloqueo: sin callbacks nuevos durante stallTimeoutMs estando en marcha.
+        bool needReopen = (ev & (kEvtDeviceLost | kEvtResetRequested)) || st.state == TransportState::Error;
         if (st.callbacks != lastCallbacksSeen_) {
             lastCallbacksSeen_ = st.callbacks;
             lastProgressNs_ = now;
         } else if (now - lastProgressNs_ > policy_.stallTimeoutMs * kNsPerMs) {
-            needReopen = true;
+            needReopen = true; // bloqueo: sin callbacks estando en marcha
         }
-        if (ev & kEvtFormatChanged) {
-            // La frecuencia viaja en cada bloque; OBS remuestrea. Reanclar timestamps.
-            // (El smoother detecta el cambio de frecuencia por sí mismo.)
-        }
+        // (kEvtFormatChanged: la frecuencia viaja en cada bloque y el suavizador re-ancla.)
         if (needReopen) {
             stopAndClose();
+            std::lock_guard lk(mu_);
+            // Un fallo poco después del anterior incidente (dispositivo intermitente) hace crecer
+            // el backoff; tras un periodo estable se vuelve a empezar desde el retardo inicial.
+            const bool flapping = lastIncidentNs_ >= 0 && now - lastIncidentNs_ < policy_.stableResetMs * kNsPerMs;
+            attempt_ = flapping ? attempt_ + 1 : 0;
+            lastIncidentNs_ = now;
+            running_ = false;
             inRetry_ = true;
-            attempt_ = 0;
+            if (attempt_ >= policy_.maxAttempts)
+                gaveUp_ = true;
             nextRetryNs_ = now + computeBackoffMs(attempt_) * kNsPerMs;
         }
         return;
     }
 
     // No está en marcha pero se desea: abrir (primera vez) o reintentar con backoff.
-    if (inRetry_ && now < nextRetryNs_)
-        return;
-    if (inRetry_ && attempt_ >= policy_.maxAttempts)
+    if (gaveUp)
         return; // requiere acción manual (requestReconnect)
+    if (inRetry && now < nextRetry)
+        return;
 
-    if (inRetry_)
+    Result r = openAndStart(); // sin mu_: la UI y el monitor no esperan al driver
+    std::lock_guard lk(mu_);
+    if (inRetry)
         ++reconnectAttempts_;
-    Result r = openAndStart();
     if (r.ok()) {
-        if (inRetry_)
+        if (inRetry)
             ++successfulReconnects_;
+        running_ = true;
+        everOpened_ = true;
         inRetry_ = false;
-        attempt_ = 0;
         lastOpenError_ = ErrorCode::Ok;
         lastOpenErrorMessage_.clear();
     } else {
         lastOpenError_ = r.code;
         lastOpenErrorMessage_ = r.message;
-        if (!inRetry_) {
+        if (!inRetry) {
             inRetry_ = true;
             attempt_ = 0;
         } else {
-            ++attempt_;
+            attempt_ = attempt + 1;
         }
+        if (attempt_ >= policy_.maxAttempts)
+            gaveUp_ = true;
         nextRetryNs_ = now + computeBackoffMs(attempt_) * kNsPerMs;
     }
 }
 
 void DeviceHub::requestReconnect()
 {
-    std::lock_guard lk(mu_);
-    if (running_)
+    std::lock_guard op(opMu_);
+    bool running;
+    {
+        std::lock_guard lk(mu_);
+        if (shutdown_)
+            return;
+        running = running_;
+    }
+    if (running)
         stopAndClose();
+    std::lock_guard lk(mu_);
+    running_ = false;
     inRetry_ = true;
+    gaveUp_ = false;
     attempt_ = 0;
+    lastIncidentNs_ = -1;
     nextRetryNs_ = 0; // inmediato en el siguiente poll()
 }
 
 void DeviceHub::shutdown()
 {
+    std::lock_guard op(opMu_);
+    {
+        std::lock_guard lk(mu_);
+        if (shutdown_)
+            return;
+        shutdown_ = true;
+        wantRunning_ = false;
+    }
+    stopAndClose(); // idempotente en los transportes
     std::lock_guard lk(mu_);
-    wantRunning_ = false;
-    if (running_)
-        stopAndClose();
-    else
-        transport_->close();
+    running_ = false;
+    inRetry_ = false;
 }
 
 HubStatus DeviceHub::status() const
 {
-    std::lock_guard lk(mu_);
     HubStatus s;
     s.deviceId = deviceId_;
     s.backend = transport_->backendName();
-    s.transport = transport_->snapshot();
+    s.transport = transport_->snapshot(); // atómicos / mutex interno corto del transporte
     s.format = transport_->format();
     s.caps = transport_->capabilities();
+    std::lock_guard lk(mu_);
     s.state = s.transport.state;
     if (inRetry_ && !running_)
-        s.state = TransportState::Reconnecting;
+        s.state = gaveUp_ ? TransportState::Error : TransportState::Reconnecting;
     s.lastOpenError = lastOpenError_;
     s.lastOpenErrorMessage = lastOpenErrorMessage_;
+    if (gaveUp_)
+        s.lastOpenErrorMessage = "reintentos agotados (" + std::to_string(attempt_) +
+                                 "); pulsa \"Reconectar\"" +
+                                 (lastOpenErrorMessage_.empty() ? std::string() : " · " + lastOpenErrorMessage_);
     s.reconnectAttempts = reconnectAttempts_;
     s.successfulReconnects = successfulReconnects_;
-    s.nextRetryNs = inRetry_ ? nextRetryNs_ : 0;
+    s.nextRetryNs = inRetry_ && !gaveUp_ ? nextRetryNs_ : 0;
     s.wantRunning = wantRunning_;
+    s.gaveUp = gaveUp_;
     s.timestampResyncs = resyncs_.load();
     return s;
 }

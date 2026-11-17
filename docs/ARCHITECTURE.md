@@ -73,10 +73,15 @@ No hay ruta B (SoundGrid nativo): está `BLOQUEADO POR PROTOCOLO` ([NATIVE_FEASI
 | Callback del driver (ASIO `bufferSwitch` / IOProc) | Convertir a float32, mapear canales, escribir en anillos preasignados, medir Peak/RMS, contadores atómicos, `atomic::notify_one` | Asignar memoria (T48: 0 asignaciones), locks, logs, E/S, UI |
 | Hilo COM de ASIO | Todas las llamadas de control al driver, con bomba de mensajes | Procesar audio |
 | Hilo de salida (uno por fuente) | `obs_source_output_audio` y medir la latencia callback→entrega | Llamar al driver |
-| Control (`TransportManager`, 50 ms) | Abrir y cerrar, eventos del driver, reconexión con backoff, detección de bloqueo | Tocar la consola |
+| Control (`TransportManager`, 50 ms) | Abrir y cerrar, eventos del driver, reconexión con backoff, detección de bloqueo. Usa su propio candado de operaciones (`opMu_`) | Tocar la consola; retener el candado de estado mientras llama al driver |
 | Monitor (250 ms) | Instantáneas, reglas A01–A10, NIC con caché | Bloquear el callback |
 | Despachador de alertas | JSONL rotativo, log de OBS, historial | Crecer sin límite (cola de 1024 y descartes contados) |
 | UI de OBS | Propiedades y acciones | Leer PCM |
+
+### Sincronización con el callback
+- **Retirar o cambiar una suscripción:** el control publica el cambio con `seq_cst` y espera a que termine el callback en curso (barrera de época).
+- **Si el driver está colgado dentro del callback (más de 200 ms):** nada se libera; la suscripción queda aparcada hasta que el stream se detiene.
+- **Destrucción de la fuente:** `SourceSession::shutdown()` es síncrono. Al volver, ya no se entrega audio aunque el monitor conserve una referencia.
 
 ## 5. Estados mostrados al operador
 

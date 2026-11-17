@@ -4,6 +4,8 @@
 
 #include <CoreAudio/CoreAudio.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include <Block.h>
+#include <dispatch/dispatch.h>
 
 #include <algorithm>
 #include <atomic>
@@ -111,7 +113,12 @@ namespace {
 class CoreAudioTransport final : public IAudioTransport {
 public:
     explicit CoreAudioTransport(IClock *clock) : clock_(clock ? clock : &SteadyClock::instance()) {}
-    ~CoreAudioTransport() override { close(); }
+    ~CoreAudioTransport() override
+    {
+        close();
+        if (listenerQueue_)
+            dispatch_release(listenerQueue_);
+    }
 
     const char *backendName() const override { return "coreaudio"; }
 
@@ -297,27 +304,42 @@ private:
         kAudioDevicePropertyDeviceIsAlive, kAudioDevicePropertyNominalSampleRate,
         kAudioDeviceProcessorOverload, kAudioDevicePropertyStreamConfiguration};
 
+    // Listeners con bloques sobre una cola serie propia: al retirarlos, dispatch_sync drena
+    // cualquier notificación en curso, de modo que ninguna puede usar 'this' tras close().
+    // (AudioObjectRemovePropertyListener con puntero a función no espera a las llamadas en vuelo.)
     void addListeners()
     {
+        if (!listenerQueue_)
+            listenerQueue_ = dispatch_queue_create("sg.coreaudio.listeners", DISPATCH_QUEUE_SERIAL);
+        CoreAudioTransport *self = this;
+        const AudioObjectID dev = dev_;
+        listenerBlock_ = Block_copy(^(UInt32 n, const AudioObjectPropertyAddress *addrs) {
+            self->onProperties(dev, n, addrs);
+        });
         for (auto sel : kWatched) {
             auto a = addr(sel, sel == kAudioDevicePropertyStreamConfiguration ? kAudioObjectPropertyScopeInput
                                                                                : kAudioObjectPropertyScopeGlobal);
-            AudioObjectAddPropertyListener(dev_, &a, &CoreAudioTransport::listener, this);
+            AudioObjectAddPropertyListenerBlock(dev_, &a, listenerQueue_, listenerBlock_);
         }
     }
     void removeListeners()
     {
+        if (!listenerBlock_)
+            return;
         for (auto sel : kWatched) {
             auto a = addr(sel, sel == kAudioDevicePropertyStreamConfiguration ? kAudioObjectPropertyScopeInput
                                                                                : kAudioObjectPropertyScopeGlobal);
-            AudioObjectRemovePropertyListener(dev_, &a, &CoreAudioTransport::listener, this);
+            AudioObjectRemovePropertyListenerBlock(dev_, &a, listenerQueue_, listenerBlock_);
         }
+        dispatch_sync(listenerQueue_, ^{
+                      }); // drena notificaciones ya encoladas o en curso
+        Block_release(listenerBlock_);
+        listenerBlock_ = nullptr;
     }
 
-    // Se ejecuta en un hilo de notificaciones de Core Audio (no en el de E/S).
-    static OSStatus listener(AudioObjectID dev, UInt32 n, const AudioObjectPropertyAddress *addrs, void *ctx)
+    // Se ejecuta en listenerQueue_ (nunca en el hilo de E/S).
+    void onProperties(AudioObjectID dev, UInt32 n, const AudioObjectPropertyAddress *addrs)
     {
-        auto *self = static_cast<CoreAudioTransport *>(ctx);
         for (UInt32 i = 0; i < n; ++i) {
             switch (addrs[i].mSelector) {
             case kAudioDevicePropertyDeviceIsAlive: {
@@ -325,26 +347,25 @@ private:
                 auto a = addr(kAudioDevicePropertyDeviceIsAlive);
                 AudioObjectGetPropertyData(dev, &a, 0, nullptr, &size, &alive);
                 if (!alive) {
-                    self->state_ = TransportState::Error;
-                    self->events_.fetch_or(kEvtDeviceLost);
+                    state_ = TransportState::Error;
+                    events_.fetch_or(kEvtDeviceLost);
                 }
                 break;
             }
             case kAudioDevicePropertyNominalSampleRate:
-                self->events_.fetch_or(kEvtFormatChanged | kEvtResetRequested);
+                events_.fetch_or(kEvtFormatChanged | kEvtResetRequested);
                 break;
             case kAudioDeviceProcessorOverload:
-                self->overloads_.fetch_add(1);
-                self->events_.fetch_or(kEvtOverload);
+                overloads_.fetch_add(1);
+                events_.fetch_or(kEvtOverload);
                 break;
             case kAudioDevicePropertyStreamConfiguration:
-                self->events_.fetch_or(kEvtResetRequested);
+                events_.fetch_or(kEvtResetRequested);
                 break;
             default:
                 break;
             }
         }
-        return noErr;
     }
 
     // Hilo de E/S de Core Audio (tiempo real).
@@ -395,6 +416,8 @@ private:
     }
 
     IClock *clock_;
+    dispatch_queue_t listenerQueue_ = nullptr;
+    AudioObjectPropertyListenerBlock listenerBlock_ = nullptr;
     AudioObjectID dev_ = kAudioObjectUnknown;
     AudioDeviceIOProcID procId_ = nullptr;
     bool open_ = false;

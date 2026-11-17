@@ -176,7 +176,11 @@ void destroy(void *data)
     auto *src = static_cast<SgSource *>(data);
     if (src->session && src->rt)
         src->rt->monitor().remove(src->session.get());
-    src->session.reset(); // detiene el hilo de salida antes de liberar la fuente
+    // Cierre síncrono: el hilo de salida (que usa 'source' y 'zeros') termina AQUÍ, aunque el
+    // hilo del monitor conserve todavía una referencia a la sesión durante un tick.
+    if (src->session)
+        src->session->shutdown();
+    src->session.reset();
     delete src;
 }
 

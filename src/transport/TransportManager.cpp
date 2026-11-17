@@ -135,6 +135,23 @@ std::shared_ptr<DeviceHub> TransportManager::acquire(const std::string &deviceId
     return hub;
 }
 
+std::pair<std::shared_ptr<DeviceHub>, std::shared_ptr<Subscription>>
+TransportManager::acquireAndSubscribe(const std::string &deviceId, const ChannelMap &map)
+{
+    std::lock_guard lk(mu_);
+    std::shared_ptr<DeviceHub> hub;
+    if (auto it = hubs_.find(deviceId); it != hubs_.end() && !it->second->isShutdown()) {
+        hub = it->second;
+    } else {
+        auto fit = factories_.find(backendOf(deviceId));
+        if (fit == factories_.end())
+            return {nullptr, nullptr};
+        hub = std::make_shared<DeviceHub>(fit->second(), deviceId, clock_, policy_);
+        hubs_[deviceId] = hub;
+    }
+    return {hub, hub->subscribe(map)};
+}
+
 void TransportManager::releaseIfUnused(const std::shared_ptr<DeviceHub> &hub)
 {
     if (!hub)

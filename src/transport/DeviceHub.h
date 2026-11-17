@@ -18,6 +18,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
 namespace sg {
 
@@ -91,6 +92,7 @@ struct HubStatus {
     uint64_t successfulReconnects = 0;
     int64_t nextRetryNs = 0;
     bool wantRunning = false;
+    bool gaveUp = false; // reintentos agotados: requiere "Reconectar"
     uint64_t timestampResyncs = 0;
 };
 
@@ -99,9 +101,10 @@ struct RetryPolicy {
     int64_t initialDelayMs = 1000;
     int64_t maxDelayMs = 30000;
     double multiplier = 2.0;
-    double jitter = 0.2;        // ±20 %
-    uint32_t maxAttempts = 50;  // por incidente; luego se requiere "Reconectar" manual
+    double jitter = 0.2;           // ±20 %
+    uint32_t maxAttempts = 50;     // por racha de fallos; luego se requiere "Reconectar" manual
     int64_t stallTimeoutMs = 3000; // sin callbacks estando en marcha => reabrir receptor
+    int64_t stableResetMs = 30000; // un incidente tras este tiempo estable reinicia el backoff
 };
 
 class DeviceHub final : public ICaptureSink {
@@ -113,17 +116,18 @@ public:
     const std::string &deviceId() const { return deviceId_; }
     IAudioTransport &transport() { return *transport_; }
 
-    // --- Control ---
+    // --- Control (cualquier hilo salvo el de audio). Nunca bloquean por llamadas al driver. ---
     std::shared_ptr<Subscription> subscribe(const ChannelMap &map);
     void unsubscribe(const std::shared_ptr<Subscription> &s);
     void updateMap(const std::shared_ptr<Subscription> &s, const ChannelMap &map);
     std::size_t subscriberCount() const;
+    bool isShutdown() const;
 
-    // Abre/arranca si hay suscriptores; detiene si no. Gestiona eventos y reconexión.
-    // Llamar periódicamente desde el hilo de control (p. ej. cada 100 ms).
+    // Operaciones con el driver (hilo de control). Serializadas por opMu_, que NO se toma en
+    // las funciones de estado: la UI y el monitor no esperan a open()/init() lentos.
     void poll();
     void requestReconnect(); // acción manual del operador ("Reconectar")
-    void shutdown();         // detiene y cierra (destrucción del plugin)
+    void shutdown();         // detiene y cierra (definitivo)
 
     HubStatus status() const;
 
@@ -135,7 +139,7 @@ private:
 
     Result openAndStart();
     void stopAndClose();
-    void waitForCallbackBoundary();
+    bool waitForCallbackBoundary(); // false si venció el plazo
     int64_t computeBackoffMs(uint32_t attempt);
 
     std::unique_ptr<IAudioTransport> transport_;
@@ -143,28 +147,36 @@ private:
     IClock &clock_;
     RetryPolicy policy_;
 
-    mutable std::mutex mu_; // solo control
+    std::mutex opMu_;       // serializa operaciones con el driver
+    mutable std::mutex mu_; // estado y suscripciones (secciones cortas)
     std::array<std::shared_ptr<Subscription>, kMaxSubs> owners_{};
     std::array<std::atomic<Subscription *>, kMaxSubs> rtSubs_{};
+    std::vector<std::shared_ptr<Subscription>> parked_; // retiradas sin barrera confirmada
     uint32_t nextSubId_ = 1;
 
     std::atomic<bool> inCallback_{false};
     std::atomic<uint64_t> callbackEpoch_{0};
+    std::atomic<bool> markNextDiscontinuity_{false}; // tras una reapertura
     TimestampSmoother smoother_; // solo RT (reiniciado con el stream detenido)
     std::atomic<uint64_t> resyncs_{0};
 
-    // Estado de control
+    // Estado de control (protegido por mu_)
     bool running_ = false;
     bool wantRunning_ = false;
     bool inRetry_ = false;
+    bool gaveUp_ = false;
+    bool shutdown_ = false;
+    bool everOpened_ = false;
     uint32_t attempt_ = 0;
     int64_t nextRetryNs_ = 0;
+    int64_t lastIncidentNs_ = -1;
     uint64_t reconnectAttempts_ = 0;
     uint64_t successfulReconnects_ = 0;
-    uint64_t lastCallbacksSeen_ = 0;
-    int64_t lastProgressNs_ = 0;
     ErrorCode lastOpenError_ = ErrorCode::Ok;
     std::string lastOpenErrorMessage_;
+    // Solo bajo opMu_
+    uint64_t lastCallbacksSeen_ = 0;
+    int64_t lastProgressNs_ = 0;
     uint32_t rng_ = 0x9e3779b9u;
 };
 

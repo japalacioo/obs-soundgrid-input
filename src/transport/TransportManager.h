@@ -30,6 +30,10 @@ public:
     std::vector<DeviceInfo> enumerateAll();
 
     std::shared_ptr<DeviceHub> acquire(const std::string &deviceId);
+    // Obtiene (o crea) el hub y suscribe de forma atómica respecto de releaseIfUnused(): un hub
+    // nunca se libera entre la búsqueda y la suscripción.
+    std::pair<std::shared_ptr<DeviceHub>, std::shared_ptr<Subscription>> acquireAndSubscribe(
+        const std::string &deviceId, const ChannelMap &map);
     void releaseIfUnused(const std::shared_ptr<DeviceHub> &hub);
     std::vector<std::shared_ptr<DeviceHub>> hubs() const;
 

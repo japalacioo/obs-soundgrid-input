@@ -187,7 +187,8 @@ void AlertEngine::restart(int64_t nowNs)
         if (r.incident.id == 0)
             r.state = RuleEvalState::Initializing;
         r.badSinceNs = -1;
-        r.goodSinceNs = -1;
+        // Un incidente en recuperación reinicia su ventana de histéresis (no se resuelve de golpe).
+        r.goodSinceNs = r.state == RuleEvalState::Recovering ? nowNs : -1;
     }
     nicErrHist_.clear();
     dropoutHist_.clear();
@@ -472,6 +473,30 @@ void AlertEngine::step(RuleId r, const Eval &e, const HealthSnapshot &s, std::ve
             rec.notify = x.lastNotified && !notificationsMuted(now);
             out.push_back(rec);
         }
+        // Consecuencias que siguen abiertas (y no se están recuperando) cuando su causa raíz se
+        // cierra: pasan a ser incidentes principales y se notifican si procede.
+        if (r == RuleId::A04_NoLink || r == RuleId::A03_DriverLost) {
+            for (std::size_t k = 0; k < kRuleCount; ++k) {
+                Runtime &d = rt_[k];
+                if (!d.incident.id || !d.incident.secondary || d.incident.correlationId != done.id ||
+                    d.state == RuleEvalState::Recovering)
+                    continue;
+                const RuleId dep = static_cast<RuleId>(k);
+                if (r == RuleId::A04_NoLink && dep == RuleId::A02_StreamInterrupted && isOpen(RuleId::A03_DriverLost) &&
+                    !rt(RuleId::A03_DriverLost).incident.secondary) {
+                    d.incident.correlationId = rt(RuleId::A03_DriverLost).incident.id; // sigue siendo consecuencia
+                    continue;
+                }
+                d.incident.secondary = false;
+                d.incident.correlationId = 0;
+                AlertEvent upd = d.incident;
+                upd.transition = "PROMOTED";
+                upd.wallTime = wallClockIso8601Utc();
+                upd.notify = shouldNotify(upd, now);
+                d.lastNotified = d.lastNotified || upd.notify;
+                out.push_back(upd);
+            }
+        }
         x.lastResolvedNs = now;
         x.lastResolvedId = x.incident.id;
         x.incident = AlertEvent{};
@@ -541,8 +566,11 @@ void AlertEngine::step(RuleId r, const Eval &e, const HealthSnapshot &s, std::ve
             ev.correlationId = rt(RuleId::A04_NoLink).incident.id;
             ev.secondary = true;
         }
-        ev.notify = !reopen && shouldNotify(ev, now);
-        x.lastNotified = ev.notify || (reopen && x.lastNotified);
+        // Una reapertura solo se calla si el incidente ya se había notificado; si antes fue
+        // secundario o estaba silenciado y ahora es principal, se notifica.
+        const bool alreadyNotified = reopen && x.lastNotified;
+        ev.notify = shouldNotify(ev, now) && !alreadyNotified;
+        x.lastNotified = ev.notify || alreadyNotified;
         x.incident = ev;
         x.state = RuleEvalState::Active;
         out.push_back(ev);
