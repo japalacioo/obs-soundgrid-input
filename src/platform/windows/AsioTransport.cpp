@@ -93,12 +93,32 @@ struct RegistryDriver {
     std::wstring clsid;
 };
 
-std::vector<RegistryDriver> readAsioRegistry()
+// ¿Hay un servidor COM de 64 bits (InprocServer32 en la vista de 64 bits) y existe su DLL?
+bool hasInproc64(const std::wstring &clsid)
 {
-    std::vector<RegistryDriver> out;
+    const std::wstring path = L"SOFTWARE\\Classes\\CLSID\\" + clsid + L"\\InprocServer32";
+    HKEY k = nullptr;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, path.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &k) != ERROR_SUCCESS)
+        return false;
+    wchar_t dll[MAX_PATH * 2] = {};
+    DWORD sz = sizeof(dll) - sizeof(wchar_t);
+    DWORD type = 0;
+    const bool ok = RegQueryValueExW(k, nullptr, nullptr, &type, reinterpret_cast<BYTE *>(dll), &sz) == ERROR_SUCCESS &&
+                    (type == REG_SZ || type == REG_EXPAND_SZ) && dll[0];
+    RegCloseKey(k);
+    if (!ok)
+        return false;
+    wchar_t expanded[MAX_PATH * 2] = {};
+    if (!ExpandEnvironmentStringsW(dll, expanded, MAX_PATH * 2))
+        return false;
+    return GetFileAttributesW(expanded) != INVALID_FILE_ATTRIBUTES;
+}
+
+void readAsioKey(REGSAM view, bool requireInproc64, std::vector<RegistryDriver> &out)
+{
     HKEY root = nullptr;
-    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\ASIO", 0, KEY_READ, &root) != ERROR_SUCCESS)
-        return out;
+    if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\ASIO", 0, KEY_READ | view, &root) != ERROR_SUCCESS)
+        return;
     for (DWORD i = 0;; ++i) {
         wchar_t sub[256];
         DWORD subLen = 256;
@@ -125,9 +145,26 @@ std::vector<RegistryDriver> readAsioRegistry()
         d.key = wideToUtf8(sub);
         d.name = hasDesc && desc[0] ? wideToUtf8(desc) : d.key;
         d.clsid = clsid;
+        const bool dup = std::any_of(out.begin(), out.end(), [&](const RegistryDriver &o) {
+            return o.key == d.key || _wcsicmp(o.clsid.c_str(), d.clsid.c_str()) == 0;
+        });
+        if (dup || (requireInproc64 && !hasInproc64(d.clsid)))
+            continue;
         out.push_back(std::move(d));
     }
     RegCloseKey(root);
+}
+
+// Lista de drivers ASIO utilizables desde este proceso de 64 bits.
+// 1) HKLM\SOFTWARE\ASIO (vista de 64 bits): la ubicación estándar.
+// 2) HKLM\SOFTWARE\WOW6432Node\ASIO: algunos instaladores (p. ej. Waves SoundGrid Drivers 17.3.37.122)
+//    solo escriben aquí aunque instalan y registran también la DLL de 64 bits. Se incluyen solo si el
+//    CLSID tiene un InprocServer32 de 64 bits cuya DLL existe. Solo se lee el registro; nunca se escribe.
+std::vector<RegistryDriver> readAsioRegistry()
+{
+    std::vector<RegistryDriver> out;
+    readAsioKey(KEY_WOW64_64KEY, false, out);
+    readAsioKey(KEY_WOW64_32KEY, true, out);
     return out;
 }
 

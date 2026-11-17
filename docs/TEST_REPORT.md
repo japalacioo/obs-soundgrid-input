@@ -109,6 +109,12 @@ Una revisión independiente de concurrencia y tiempo real encontró 12 problemas
   - Avanza a **1,99× tiempo real** y repite siempre la misma mitad del doble buffer.
   - El plugin no descarta esos bloques (para no perder audio con drivers atípicos), pero los cuenta (`duplicateBuffers`). El ritmo anómalo produce re-anclajes de timestamp que A08 hace visibles.
   - Es justo el tipo de anomalía que hay que vigilar con el driver de Waves en HIL.
+- **Waves SoundGrid Drivers 17.3.37.122 con una LV1 conectada directamente (17 nov 2026, primera prueba con hardware Waves):**
+  - El instalador registra la entrada ASIO solo en `HKLM\SOFTWARE\WOW6432Node\ASIO`, aunque instala y registra la DLL de 64 bits (`System32\SoundGridAsio.dll`). El plugin no la veía; ahora la incluye si su CLSID tiene un servidor COM de 64 bits. Solo lee el registro.
+  - Enlace a la consola: primero 100 Mbps (cable defectuoso); tras cambiar el cable, 1 Gbps full duplex sin errores.
+  - El SoundGrid Driver Control Panel tiene elegida la NIC correcta (`Ethernet 2`).
+  - `init()` de "Waves SoundGrid ASIO" falla: "Error Initializing (0000048c), Make sure SoundGrid is configured properly and devices are connected to the network". El servicio `SGDawNodeService` registra "Could not Start Kernel Driver Streaming err: -1036". Causa probable: el driver aún no está asignado en la LV1 (Setup > Inventory). **Captura con la LV1: NOT_RUN** (no llegó a transmitir).
+  - Las pruebas fueron de solo lectura: no se cambió nada en la consola ni en el driver.
 - **NIC:** de las 12 interfaces Ethernet listadas, solo una es física (Realtek, UP a 1000 Mbps). El selector las ordena con las físicas primero y marca las virtuales.
 
 ## Resistencia (2 h)
