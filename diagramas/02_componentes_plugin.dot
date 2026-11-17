@@ -1,0 +1,34 @@
+digraph G {
+rankdir=LR;
+graph [fontname="DejaVu Sans", bgcolor="transparent", pad="0.3", nodesep="0.25", ranksep="0.35", splines=ortho]; node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fontsize=11, margin="0.18,0.12", fillcolor="#e7f1f9", color="#a0b3c5", fontcolor="#0b2545"]; edge [fontname="DejaVu Sans", color="#48677e", arrowsize=0.65, penwidth=1.4, fontsize=9];
+subgraph cluster_api {label="PLUGIN OBS / UI"; fontname="DejaVu Sans"; color="#8aaeca"; style=rounded;
+  entry [label="PluginEntry\nRegistro de fuente",fillcolor="#d8eafa"];
+  source [label="ObsAudioSource\nSalida PCM a libobs",fillcolor="#d8eafa"];
+  dock [label="SoundGrid Monitor\nPanel + perfiles",fillcolor="#fff0cb"];
+  entry -> source; entry -> dock [style=dashed];
+}
+subgraph cluster_core {label="CORE C++"; fontname="DejaVu Sans"; color="#86c7ba"; style=rounded;
+  session [label="SessionController\nCiclo de vida / retry"];
+  transport [label="TransportManager\nIAudioTransport"];
+  channel [label="IChannelCatalog\nEvidencia y metadatos"];
+  engine [label="AudioEngine\nBuffer / mapper / DSP"];
+  snapshots [label="HealthSnapshot\nContadores atómicos"];
+  rules [label="AlertEngine\nHistéresis y correlación"];
+  sink [label="AlertSink\nLog local JSONL"];
+  session -> transport -> engine;
+  session -> channel [style=dashed];
+  engine -> snapshots [style=dotted];
+  transport -> snapshots [style=dotted];
+  snapshots -> rules -> sink;
+}
+subgraph cluster_ad {label="ADAPTADORES"; fontname="DejaVu Sans"; color="#dbb56a"; style=rounded;
+  asio [label="Waves ASIO V17", fillcolor="#d6eee9"];
+  native [label="SoundGrid nativo\ncondicional",fillcolor="#fff0cb"];
+  mock [label="MockTransport"];
+  nic [label="Windows NIC API"];
+}
+dock -> session; dock -> rules [style=dotted,constraint=false];
+engine -> source;
+transport -> asio; transport -> native [style=dashed]; transport -> mock [style=dashed];
+nic -> snapshots [style=dotted]; rules -> dock [style=dotted,constraint=false];
+}

@@ -1,0 +1,42 @@
+digraph G {
+rankdir=LR;
+graph [fontname="DejaVu Sans", bgcolor="transparent", pad="0.3", nodesep="0.25", ranksep="0.35", splines=ortho]; node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fontsize=11, margin="0.18,0.12", fillcolor="#e7f1f9", color="#a0b3c5", fontcolor="#0b2545"]; edge [fontname="DejaVu Sans", color="#48677e", arrowsize=0.65, penwidth=1.4, fontsize=9];
+subgraph cluster_hw {label="WAVES LV1 CLASSIC V17 / RED SOUNDGRID"; labelloc=t; fontsize=14; fontname="DejaVu Sans"; color="#adc9cf"; style="rounded,filled"; fillcolor="#f2f8fb";
+  lv1 [label="LV1 Classic V17\nPatching del bus\nMain L/R o stems", fillcolor="#d6eee9"];
+  sw [label="Switch Gigabit\nSoundGrid", fillcolor="#d6eee9"];
+  lv1 -> sw;
+}
+subgraph cluster_pc {label="COMPUTADOR WINDOWS + OBS STUDIO"; labelloc=t; fontsize=14; fontname="DejaVu Sans"; color="#b6cad9"; style="rounded,filled"; fillcolor="#f9fcff";
+ nic [label="NIC Ethernet dedicada\ncarrier • velocidad • errores"];
+ subgraph cluster_trans {label="TRANSPORTE / IAudioTransport"; fontname="DejaVu Sans"; fontsize=11; color="#b7c2ce"; style="rounded,dashed";
+  asio [label="A · SoundGrid ASIO V17\nDriver Waves necesario", fillcolor="#d6eee9"];
+  native [label="B · Receptor SoundGrid\nSDK/permiso por validar", fillcolor="#fff0cb", color="#dda744"];
+  mock [label="Mock / generador\nSolo CI y pruebas",fillcolor="#eef1f6"];
+  selection [label="TransportManager\nestado + reconexión"];
+  asio -> selection; native -> selection [style=dashed,color="#a68a57"]; mock -> selection [style=dashed];
+ }
+ subgraph cluster_audio {label="DATA PLANE · AUDIO / tiempo real"; fontname="DejaVu Sans"; fontsize=11; color="#8db9d9"; style="rounded,dashed";
+  capture [label="Captura PCM\ncallbacks • timestamps"];
+  ring [label="Ring buffer SPSC\npreasignado"];
+  dsp [label="Canales • Peak/RMS\nmezcla • conversión"];
+  obssrc [label="Fuente libobs\noutput_audio()",fillcolor="#c9e2ff"];
+  capture -> ring -> dsp -> obssrc;
+ }
+ obs [label="OBS Studio\nstreaming / grabación",fillcolor="#c5dffb"];
+ subgraph cluster_monitor {label="CONTROL PLANE · salud y UI (NO realtime)"; fontname="DejaVu Sans"; fontsize=11; color="#edc995"; style="rounded,dashed";
+  health [label="HealthMonitor\nNIC + driver + buffers"];
+  alert [label="AlertEngine A01-A10\ndebounce / correlación"];
+  ui [label="SoundGrid Monitor\ndock + historial + logs",fillcolor="#fff0cb"];
+  health -> alert -> ui;
+ }
+ nic -> asio;
+ nic -> native [style=dashed,color="#bb8f47"];
+ selection -> capture;
+ obssrc -> obs;
+ ring -> health [style=dotted,constraint=false];
+ capture -> health [style=dotted,constraint=false];
+ nic -> health [style=dotted,constraint=false];
+ ui -> selection [style=dotted,constraint=false];
+ }
+ sw -> nic;
+}

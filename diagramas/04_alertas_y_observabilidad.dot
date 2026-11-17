@@ -1,0 +1,21 @@
+digraph G {
+rankdir=LR;
+graph [fontname="DejaVu Sans", bgcolor="transparent", pad="0.3", nodesep="0.25", ranksep="0.35", splines=ortho]; node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fontsize=11, margin="0.18,0.12", fillcolor="#e7f1f9", color="#a0b3c5", fontcolor="#0b2545"]; edge [fontname="DejaVu Sans", color="#48677e", arrowsize=0.65, penwidth=1.4, fontsize=9];
+subgraph cluster_obs {label="FUENTES OBSERVADAS (no inferidas)"; fontsize=12; color="#98b6c8"; style=rounded;
+ nic [label="NIC física\nenlace / velocidad / errores"];
+ drv [label="ASIO / transporte\ncallbacks / error"];
+ pcm [label="Audio engine\nframes / buffer / drift"];
+ meter [label="Metering\nPeak / RMS por canal"];
+}
+snapshot [label="HealthSnapshot\nvalor + origen + confianza",fillcolor="#d9e9ff"];
+filter [label="AlertEngine\nventana + debounce\nhistéresis",fillcolor="#d9e9ff"];
+correl [label="Correlación de causas\nNIC DOWN -> A04 principal",fillcolor="#fff0cb"];
+subgraph cluster_outputs {label="SALIDAS SEPARADAS DEL AUDIO"; fontsize=12; color="#a5cabc"; style=rounded;
+ dock [label="Dock OBS\ncrit. / warning / ack",fillcolor="#d6eee9"];
+ log [label="JSONL local\nrotación / privacidad",fillcolor="#d6eee9"];
+ rec [label="Control de reconexión\nsolo PC receptor",fillcolor="#fff0cb"];
+}
+nic -> snapshot;drv -> snapshot;pcm -> snapshot;meter -> snapshot;
+snapshot -> filter -> correl;
+correl -> dock; correl -> log;correl -> rec [style=dotted];
+}

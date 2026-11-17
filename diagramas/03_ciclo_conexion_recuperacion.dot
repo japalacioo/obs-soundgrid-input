@@ -1,0 +1,24 @@
+digraph G {
+rankdir=LR;
+graph [fontname="DejaVu Sans", bgcolor="transparent", pad="0.3", nodesep="0.25", ranksep="0.35", splines=ortho]; node [fontname="DejaVu Sans", shape=box, style="rounded,filled", fontsize=11, margin="0.18,0.12", fillcolor="#e7f1f9", color="#a0b3c5", fontcolor="#0b2545"]; edge [fontname="DejaVu Sans", color="#48677e", arrowsize=0.65, penwidth=1.4, fontsize=9];
+start [label="1. Fuente OBS\ncreada", fillcolor="#d9e9ff"];
+nic [label="2. Leer estado NIC\ny seleccionar adaptador"];
+method [label="3. Comprobar\ntransporte disponible",shape=diamond,margin="0.1,0.08",fillcolor="#fff5de"];
+open [label="4. Abrir ASIO\n(o receptor autorizado)", fillcolor="#d6eee9"];
+frames [label="5. Recibir PCM\nde entradas parcheadas",fillcolor="#d6eee9"];
+obs [label="6. Enviar audio OBS\n+ métricas",fillcolor="#c9e2ff"];
+problem [label="Error observable:\nNIC / driver / frames",fillcolor="#ffe1dc",color="#c8756e"];
+alert [label="AlertEngine\nincidente A01-A10",fillcolor="#fff0cb"];
+retry [label="Retry del receptor\nbackoff acotado", fillcolor="#fff0cb"];
+recover [label="RECOVERED\ntras estabilidad",fillcolor="#d6eee9"];
+unknown [label="Mostrar NO DISPONIBLE\nNO fingir consola detectada", fillcolor="#fff0cb"];
+start -> nic -> method;
+method -> open [label="disponible"];
+method -> unknown [label="no disponible"];
+open -> frames -> obs;
+frames -> problem [label="caída",color="#b35f50"];
+nic -> problem [color="#b35f50",style=dashed];
+problem -> alert -> retry;
+retry -> open [style=dashed, label="al reabrir"];
+obs -> recover [style=dotted,label="salud estable"];
+}

@@ -1,0 +1,27 @@
+include(FetchContent)
+# GoogleTest desde la release oficial (github.com/google/googletest).
+FetchContent_Declare(googletest
+  URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz
+  URL_HASH SHA256=7b42b4d6ed48810c5362c265a17faebe90dc2373c885e5216439d37927f02926
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+add_executable(sg_unit_tests
+  unit/test_audio.cpp
+  unit/test_transport.cpp
+  unit/test_alerts.cpp
+  unit/test_sinks_settings.cpp
+  unit/test_session.cpp
+  unit/TestHelpers.h
+)
+target_link_libraries(sg_unit_tests PRIVATE sg_core GTest::gtest_main)
+
+add_executable(sg_platform_tests integration/test_platform_local.cpp)
+target_link_libraries(sg_platform_tests PRIVATE sg_core GTest::gtest_main)
+
+include(GoogleTest)
+gtest_discover_tests(sg_unit_tests DISCOVERY_TIMEOUT 60 PROPERTIES LABELS "unit")
+# Pruebas contra la NIC y los drivers reales de la máquina (sin LV1). Informativas.
+gtest_discover_tests(sg_platform_tests DISCOVERY_TIMEOUT 60 PROPERTIES LABELS "platform")
