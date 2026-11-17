@@ -54,6 +54,9 @@ bool obs_module_load(void)
     if (logPath)
         bfree(logPath);
     rt->dispatcher().addSink(std::make_shared<sg::CallbackSink>(logAlert));
+    sg::MockConfig mock; // simulador: 32 canales para probar mapas, stems y alertas sin hardware
+    mock.channels = 32;
+    rt->transports().setMockConfig(mock);
     sg::setPluginRuntime(rt);
     sg::registerSoundGridSource();
     obs_frontend_add_tools_menu_item(obs_module_text("SoundGridMonitor"), toolsMenu, nullptr);

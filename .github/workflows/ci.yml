@@ -1,0 +1,60 @@
+# CI Windows/macOS (SDD-01, SDD-13). ESTADO: definido, NO ejecutado todavía (el repositorio
+# no tiene remoto). Las pruebas HIL (LV1 real) nunca se ejecutan en CI.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    env:
+      OBS_VERSION: 33.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: OBS portable (para libobs y el host de integración)
+        shell: pwsh
+        run: |
+          $url = "https://github.com/obsproject/obs-studio/releases/download/$env:OBS_VERSION/OBS-Studio-$env:OBS_VERSION-Windows-x64.zip"
+          Invoke-WebRequest $url -OutFile obs.zip
+          Expand-Archive obs.zip -DestinationPath obs-portable
+      - name: SDK local de libobs
+        shell: pwsh
+        run: tools/make-obs-sdk.ps1 -ObsDir "$PWD/obs-portable" -Tag $env:OBS_VERSION
+      - name: Configurar
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DSG_OBS_SDK_DIR="${{ github.workspace }}/.deps/obs-sdk" -DSG_OBS_BIN_DIR="${{ github.workspace }}/obs-portable/bin/64bit"
+      - name: Compilar
+        run: cmake --build build --config Release
+      - name: Pruebas (unitarias, resistencia corta e integración con libobs)
+        run: ctest --test-dir build -C Release -L "unit|soak|obs" --output-on-failure
+      - name: Pruebas de plataforma (informativas; el runner no tiene drivers ASIO)
+        run: ctest --test-dir build -C Release -L platform --output-on-failure
+        continue-on-error: true
+      - name: Paquete
+        shell: pwsh
+        run: packaging/windows/package.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: obs-soundgrid-input-windows-x64
+          path: dist/*.zip*
+
+  macos:
+    strategy:
+      matrix:
+        include:
+          - runner: macos-15        # Apple Silicon
+          - runner: macos-15-intel  # Intel (si el runner está disponible)
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Núcleo y pruebas (sin libobs)
+        run: |
+          cmake -S . -B build-macos -G Xcode -DSG_BUILD_OBS_PLUGIN=OFF -DSG_SANITIZERS=OFF
+          cmake --build build-macos --config Release
+          ctest --test-dir build-macos -C Release -L "unit|soak" --output-on-failure
+      - name: Pruebas de plataforma (Core Audio / NIC del runner, informativas)
+        run: ctest --test-dir build-macos -C Release -L platform --output-on-failure
+        continue-on-error: true
+      # El plugin macOS requiere libobs.framework: usar las dependencias del obs-plugintemplate
+      # (buildspec) o un árbol de OBS compilado y configurar con -DSG_BUILD_OBS_PLUGIN=ON.

@@ -1,0 +1,24 @@
+﻿SOAK: 120.0 min · buffer 128 · 32 canales · 4 fuentes · 0 hilos de carga CPU
+t=     6s frames[0]=265344 desb=0 disc=0 lat_max=0.14ms mem=23.4MB estado=Audio OK
+t=    30s frames[0]=1440000 desb=0 disc=0 lat_max=0.38ms mem=23.5MB estado=Audio OK
+t=    60s frames[0]=2887936 desb=0 disc=0 lat_max=0.38ms mem=23.5MB estado=Audio OK
+t=    90s frames[0]=4330112 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   120s frames[0]=5770880 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   150s frames[0]=7213184 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   180s frames[0]=8655232 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   210s frames[0]=10097408 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   240s frames[0]=11539200 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   270s frames[0]=12980992 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   300s frames[0]=14422912 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   330s frames[0]=15840768 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   360s frames[0]=17282688 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   390s frames[0]=18724608 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   420s frames[0]=20166784 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   450s frames[0]=21608576 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   480s frames[0]=23050624 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   510s frames[0]=24492672 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   540s frames[0]=25934208 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   570s frames[0]=27376256 desb=0 disc=0 lat_max=15.80ms mem=23.5MB estado=Audio OK
+t=   600s frames[0]=28818176 desb=0 disc=0 lat_max=15.80ms mem=23.6MB estado=Audio OK
+t=   630s frames[0]=30260096 desb=0 disc=0 lat_max=15.80ms mem=23.6MB estado=Audio OK
+t=   660s frames[0]=31701632 desb=0 disc=0 lat_max=15.80ms mem=23.6MB estado=Audio OK
