@@ -181,6 +181,24 @@ int main()
     for (obs_property_t *p = obs_properties_first(props); p; obs_property_next(&p))
         ++count;
     CHECK(props && count >= 4, "UI", "obs_source_properties construye los grupos");
+    {
+        // Cambiar de dispositivo en el diálogo rehace las listas de canal (no deja las del anterior).
+        obs_property_t *devp = obs_properties_get(props, "device");
+        obs_property_t *ch1 = obs_properties_get(props, "ch_1");
+        const size_t before = ch1 ? obs_property_list_item_count(ch1) : 0;
+        obs_data_t *tmp = obs_data_create();
+        obs_data_set_string(tmp, "device", "");
+        obs_property_modified(devp, tmp);
+        const size_t none = obs_property_list_item_count(ch1);
+        obs_data_set_string(tmp, "device", "mock:default");
+        obs_property_modified(devp, tmp);
+        const size_t back = obs_property_list_item_count(ch1);
+        obs_data_release(tmp);
+        char mu[128];
+        std::snprintf(mu, sizeof(mu), "las listas de canal se rehacen al cambiar de dispositivo (%zu -> %zu -> %zu)",
+                      before, none, back);
+        CHECK(before == 32 && none == 1 && back == 32, "UI", mu);
+    }
     obs_properties_destroy(props);
     obs_data_t *after = obs_source_get_settings(src);
     const std::string status = obs_data_get_string(after, "status_text");

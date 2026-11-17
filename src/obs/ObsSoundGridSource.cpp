@@ -249,11 +249,32 @@ bool modeChanged(obs_properties_t *props, obs_property_t *, obs_data_t *s)
     return true;
 }
 
-bool deviceChanged(obs_properties_t *props, obs_property_t *, obs_data_t *s)
+// Rellena las 8 listas de canal con las entradas del dispositivo indicado. Si el driver aún no
+// se ha abierto, los nombres no se conocen y solo se numeran (nunca se reutilizan los de otro).
+void fillChannelLists(SgSource *src, obs_properties_t *props, const std::string &deviceId)
+{
+    std::vector<std::string> names;
+    const uint32_t nch = src ? deviceChannelCount(src, deviceId, names) : 0;
+    for (int i = 1; i <= 8; ++i) {
+        obs_property_t *c = obs_properties_get(props, chKey(i).c_str());
+        if (!c)
+            continue;
+        obs_property_list_clear(c);
+        for (uint32_t k = 0; k < std::max<uint32_t>(nch, 1); ++k) {
+            std::string label = std::to_string(k + 1);
+            if (k < names.size() && !names[k].empty())
+                label += " · " + names[k] + " (" + T_("TagDriverPort") + ")";
+            obs_property_list_add_int(c, label.c_str(), k);
+        }
+    }
+}
+
+bool deviceChanged(void *priv, obs_properties_t *props, obs_property_t *, obs_data_t *s)
 {
     const std::string dev = obs_data_get_string(s, kDevice);
     obs_property_set_visible(obs_properties_get(props, kMockSignal), dev.rfind("mock:", 0) == 0);
     obs_property_set_visible(obs_properties_get(props, "simulate_fault"), dev.rfind("mock:", 0) == 0);
+    fillChannelLists(static_cast<SgSource *>(priv), props, dev);
     return true;
 }
 
@@ -391,7 +412,7 @@ obs_properties_t *getProperties(void *data)
                                                         currentDev.c_str());
         obs_property_list_item_disable(dev, idx, true);
     }
-    obs_property_set_modified_callback(dev, deviceChanged);
+    obs_property_set_modified_callback2(dev, deviceChanged, src);
     obs_property_set_long_description(dev, T_("DeviceHelp"));
 
     obs_property_t *nic = obs_properties_add_list(cn, kNic, T_("Nic"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
@@ -435,17 +456,9 @@ obs_properties_t *getProperties(void *data)
     obs_property_set_modified_callback(mode, modeChanged);
     obs_property_t *count = obs_properties_add_int(chp, kCount, T_("ChannelCount"), 1, 8, 1);
     obs_property_set_modified_callback(count, modeChanged);
-    std::vector<std::string> names;
-    const uint32_t nch = src ? deviceChannelCount(src, currentDev, names) : 0;
-    for (int i = 1; i <= 8; ++i) {
-        obs_property_t *c = obs_properties_add_list(chp, chKey(i).c_str(), "", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
-        for (uint32_t k = 0; k < std::max<uint32_t>(nch, 1); ++k) {
-            std::string label = std::to_string(k + 1);
-            if (k < names.size() && !names[k].empty())
-                label += " · " + names[k] + " (" + T_("TagDriverPort") + ")";
-            obs_property_list_add_int(c, label.c_str(), k);
-        }
-    }
+    for (int i = 1; i <= 8; ++i)
+        obs_properties_add_list(chp, chKey(i).c_str(), "", OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_INT);
+    fillChannelLists(src, chp, currentDev);
     obs_property_t *chInfo = obs_properties_add_text(chp, "ch_info", T_("ChannelInfoTitle"), OBS_TEXT_INFO);
     if (settings)
         obs_data_set_string(settings, "ch_info", T_("ChannelInfo"));
