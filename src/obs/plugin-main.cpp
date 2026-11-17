@@ -9,6 +9,7 @@
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("obs-soundgrid-input", "en-US")
+OBS_MODULE_AUTHOR(SG_PLUGIN_AUTHOR)
 
 MODULE_EXPORT const char *obs_module_description(void)
 {
@@ -65,8 +66,8 @@ bool obs_module_load(void)
     for (const auto &b : rt->transports().backends())
         backends += (backends.empty() ? "" : ", ") + b;
     blog(LOG_INFO,
-         "[soundgrid] OBS SoundGrid Input %s cargado (%s; backends: %s). Validación con LV1 V17 real: NO PROBADO EN HARDWARE.",
-         SG_PLUGIN_VERSION, sg::platformName(sg::currentPlatform()), backends.c_str());
+         "[soundgrid] OBS SoundGrid Input %s por %s cargado (%s; backends: %s). Validación con LV1 V17 real: NO PROBADO EN HARDWARE.",
+         SG_PLUGIN_VERSION, SG_PLUGIN_AUTHOR, sg::platformName(sg::currentPlatform()), backends.c_str());
     return true;
 }
 

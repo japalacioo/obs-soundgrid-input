@@ -485,6 +485,13 @@ obs_properties_t *getProperties(void *data)
     (void)alInfo;
     obs_properties_add_group(props, "grp_alerts", T_("GroupAlerts"), OBS_GROUP_NORMAL, al);
 
+    obs_properties_add_text(props, "credits", T_("CreditsTitle"), OBS_TEXT_INFO);
+    if (settings)
+        obs_data_set_string(settings, "credits",
+                            (std::string("OBS SoundGrid Input ") + SG_PLUGIN_VERSION + " · " + T_("CreditsBy") + " " +
+                             SG_PLUGIN_AUTHOR + " · GPLv3")
+                                .c_str());
+
     if (settings)
         obs_data_release(settings);
     return props;

@@ -2,6 +2,8 @@
 
 ## 0.1.0 (17 de noviembre de 2026): core multiplataforma (nivel 1 de ADR-008)
 
+**Autor:** Joan Palacio.
+
 **Estado:** apto para pruebas de laboratorio. **NO PROBADO EN HARDWARE con Waves eMotion LV1 Classic V17**: no usar en un show sin completar antes las pruebas HIL de `tests/hil/HIL_PROCEDURE.md`.
 
 ### Nuevo

@@ -2,7 +2,7 @@
 
 | Componente | Licencia | Cómo se usa |
 |---|---|---|
-| OBS SoundGrid Input (este proyecto) | **GPLv3 o posterior** ([LICENSE](../LICENSE)) | — |
+| OBS SoundGrid Input (este proyecto), Copyright (C) 2026 Joan Palacio | **GPLv3 o posterior** ([LICENSE](../LICENSE)) | — |
 | OBS Studio / libobs 33.0.1 | GPLv2 o posterior | Se enlaza dinámicamente con `obs.dll` y `obs-frontend-api.dll`. Las cabeceras se obtienen en tiempo de compilación de github.com/obsproject/obs-studio (no se distribuyen) |
 | `src/platform/windows/third_party/obs-win-asio/{asio-compat.h, iasiodrv.h}` | GPLv3 o posterior (pkv, proyecto OBS), derivadas del Steinberg ASIO SDK 2.3.4 bajo GPLv3 | Se incluyen sin cambios, con su cabecera de copyright y un README de procedencia |
 | Steinberg ASIO SDK | Licencia dual: propietaria o GPLv3 | No se distribuye; solo las cabeceras mínimas anteriores |

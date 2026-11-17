@@ -125,6 +125,14 @@ int main()
     const char *display = obs_source_get_display_name("soundgrid_input");
     CHECK(display != nullptr, "T01", (std::string("fuente registrada: ") + (display ? display : "(null)")).c_str());
     CHECK(obs_get_source_output_flags("soundgrid_input") & OBS_SOURCE_AUDIO, "T01", "fuente de audio");
+    {
+        const char *author = obs_get_module_author(mod);
+        CHECK(author && std::string(author) == "Joan Palacio", "T01",
+              (std::string("autor del módulo: ") + (author ? author : "(null)")).c_str());
+        obs_properties_t *pp = obs_get_source_properties("soundgrid_input");
+        CHECK(pp && obs_properties_get(pp, "credits") != nullptr, "T01", "propiedad de créditos presente");
+        obs_properties_destroy(pp);
+    }
 
     // --- T02/T03: el simulador llega a OBS y el mapeo L/R es correcto ---
     obs_data_t *s = mockSettings(0, 1);

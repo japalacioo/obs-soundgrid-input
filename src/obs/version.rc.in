@@ -10,7 +10,9 @@ BEGIN
       VALUE "FileVersion", "@PROJECT_VERSION@"
       VALUE "ProductName", "OBS SoundGrid Input"
       VALUE "ProductVersion", "@PROJECT_VERSION@"
-      VALUE "LegalCopyright", "GPLv3. ASIO is a trademark of Steinberg Media Technologies GmbH."
+      VALUE "CompanyName", "@SG_PLUGIN_AUTHOR@"
+      VALUE "LegalCopyright", "Copyright (C) 2026 @SG_PLUGIN_AUTHOR@. GPLv3. ASIO is a trademark of Steinberg Media Technologies GmbH."
+      VALUE "Comments", "Autor: @SG_PLUGIN_AUTHOR@"
       VALUE "OriginalFilename", "obs-soundgrid-input.dll"
     END
   END

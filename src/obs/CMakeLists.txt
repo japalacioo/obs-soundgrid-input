@@ -41,7 +41,9 @@ add_library(obs-soundgrid-input MODULE
   Diagnostics.h Diagnostics.cpp
 )
 target_link_libraries(obs-soundgrid-input PRIVATE sg_core ${_sg_obs_target} ${_sg_fe_target})
-target_compile_definitions(obs-soundgrid-input PRIVATE SG_PLUGIN_VERSION="${PROJECT_VERSION}")
+set(SG_PLUGIN_AUTHOR "Joan Palacio")
+target_compile_definitions(obs-soundgrid-input PRIVATE SG_PLUGIN_VERSION="${PROJECT_VERSION}"
+                                                       SG_PLUGIN_AUTHOR="${SG_PLUGIN_AUTHOR}")
 set_target_properties(obs-soundgrid-input PROPERTIES PREFIX "")
 if(MSVC)
   # Cabeceras de libobs: avisos que no son nuestros.

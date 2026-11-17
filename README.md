@@ -70,5 +70,8 @@ tests/              unitarias, integración (libobs real), resistencia y HIL (pr
 docs/               documentación, ADR e informes
 ```
 
+## Créditos
+Desarrollado por **Joan Palacio**.
+
 ## Licencia
-GPLv3 o posterior (ver [LICENSE](LICENSE) y [docs/LICENSING.md](docs/LICENSING.md)). No afiliado a Waves Audio ni a Steinberg.
+Copyright (C) 2026 Joan Palacio. GPLv3 o posterior (ver [LICENSE](LICENSE) y [docs/LICENSING.md](docs/LICENSING.md)). No afiliado a Waves Audio ni a Steinberg.

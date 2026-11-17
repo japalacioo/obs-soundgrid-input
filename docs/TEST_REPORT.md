@@ -32,7 +32,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | CTest Release completo (unit, platform, obs, soak) | **87/87 PASS** |
 | Unitarias (`sg_unit_tests`) | 82/82 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md)) |
 | Plataforma, hardware real no Waves (`sg_platform_tests`) | 3/3 PASS |
-| Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 15/15 comprobaciones PASS · `bnum_allocs` = 0 al cerrar |
+| Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 17/17 comprobaciones PASS (incluye autor del módulo y créditos) · `bnum_allocs` = 0 al cerrar |
 | OBS 33.0.1 con interfaz (instalación real) | Carga en "Loaded Modules"; init ≈ 1 ms; descarga limpia; OBS sale con código 0 |
 | Resistencia 2 min con 12 hilos de CPU al 100 % | PASS: 0 cortes, 0 huecos, latencia máx 0,19 ms, memoria estable |
 | Resistencia 2 h (simulador en tiempo real) | PASS: 0 cortes, 0 huecos, 0 desbordes; memoria +0,1 MB ([§ Resistencia](#resistencia-2-h)) |
