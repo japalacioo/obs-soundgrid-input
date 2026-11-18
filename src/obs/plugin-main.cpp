@@ -81,7 +81,7 @@ bool obs_module_load(void)
     for (const auto &b : rt->transports().backends())
         backends += (backends.empty() ? "" : ", ") + b;
     blog(LOG_INFO,
-         "[soundgrid] OBS SoundGrid Input %s por %s cargado (%s; backends: %s). Validación con LV1 V17 real: NO PROBADO EN HARDWARE.",
+         "[soundgrid] OBS SoundGrid Input %s por %s cargado (%s; backends: %s). Validación con LV1 V17 real: PARCIAL (audio recibido; faltan pruebas HIL de duración y reconexión).",
          SG_PLUGIN_VERSION, SG_PLUGIN_AUTHOR, sg::platformName(sg::currentPlatform()), backends.c_str());
     return true;
 }

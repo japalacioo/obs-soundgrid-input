@@ -18,7 +18,7 @@ Empieza por el panel **Estado y alertas** (Herramientas > SoundGrid Monitor): ca
 | A08 "Cortes de audio" | CPU saturada, driver irregular o buffer pequeño | Sube el buffer del driver o de la red y revisa la CPU. Mira los contadores en el panel |
 | El driver va "más rápido" que el tiempo real (muchas discontinuidades) | Driver sin reloj de host (p. ej. ReaRoute sin REAPER) | Revisa el reloj del driver y de la red SoundGrid |
 | El nombre de canal no coincide con la LV1 | Comportamiento esperado: no hay API pública de nombres | Lleva tu propia correspondencia (ver PROFILES.md) |
-| No hay notificaciones emergentes | En 0.1.0 no hay dock Qt (ADR-014) | Revisa el panel, el log de OBS y `alerts.jsonl` |
+| No aparece la barra roja al perder el audio | Opción "Mostrar aviso rojo" desactivada, avisos silenciados 10 min, la fuente no está en una escena visible, o macOS/Linux (sin barra todavía) | Revisa 3 · Avisos en el panel; el log de OBS y `alerts.jsonl` registran igualmente la alerta |
 
 **Para pedir soporte**, pulsa **Exportar diagnóstico** y adjunta:
 - `%APPDATA%\obs-studio\plugin_config\obs-soundgrid-input\diagnostics.json`

@@ -1,4 +1,4 @@
-# Arquitectura implementada (v0.1.0)
+# Arquitectura implementada (v0.2.0)
 
 Este documento describe el código **tal como está**. Los diagramas objetivo originales están en `../diagramas/`; el `05_arquitectura_windows_macos` sigue siendo la referencia de alto nivel.
 

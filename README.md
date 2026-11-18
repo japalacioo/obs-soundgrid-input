@@ -2,7 +2,7 @@
 
 Plugin de OBS Studio para recibir audio de una consola **Waves eMotion LV1 Classic V17** a través del **Waves SoundGrid Driver V17**: ASIO en Windows y Core Audio en macOS. Incluye monitoreo y alertas operativas para producción en vivo.
 
-> **Estado 0.1.0:** compilado y probado en Windows 11 con OBS 33.0.1, con un simulador y un driver ASIO real de terceros. **NO PROBADO EN HARDWARE** con LV1 V17 ni con el driver de Waves. macOS: código escrito, sin compilar.
+> **Estado 0.2.0:** compilado y probado en Windows 11 con OBS 33.0.1. **Prueba con hardware Waves PARCIAL:** audio de una LV1 Classic V17 recibido por el driver Waves SoundGrid V17 hasta OBS; faltan las pruebas HIL de duración, reconexión y patch. macOS: código escrito, sin compilar.
 > **Requiere el driver de Waves.** Recibir SoundGrid sin driver está bloqueado por ser un protocolo propietario (ver [docs/NATIVE_FEASIBILITY.md](docs/NATIVE_FEASIBILITY.md)).
 
 ## Qué hace

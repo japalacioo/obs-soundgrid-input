@@ -1,4 +1,4 @@
-# Informe de pruebas, v0.1.0
+# Informe de pruebas, v0.2.0
 
 **Fecha:** 17 de noviembre de 2026 · **Equipo:** i7-1255U, Windows 11 build 26300, OBS 33.0.1, MSVC 19.44, CMake 4.4.3.
 **Hardware Waves:** NINGUNO. No hubo eMotion LV1, SoundGrid Driver V17, switch ni red SoundGrid.

@@ -1,7 +1,7 @@
-# Matriz de compatibilidad (v0.1.0, 17 de noviembre de 2026)
+# Matriz de compatibilidad (v0.2.0, 17 de noviembre de 2026)
 
 Estados: `NO_EVALUADO`, `SIMULADO`, `COMPILA`, `PROBADO_LOCAL`, `PROBADO_HIL`, `BLOQUEADO`, `NO_SOPORTADO`.
-`PROBADO_LOCAL` significa probado en el equipo de desarrollo con hardware y drivers reales que **no son Waves**. **Ninguna capacidad está en `PROBADO_HIL`.**
+`PROBADO_LOCAL` significa probado en el equipo de desarrollo con hardware y drivers reales que **no son Waves**. Solo la captura con Waves en Windows tiene una prueba HIL, y es **parcial**.
 
 Equipo de desarrollo: i7-1255U · Windows 11 build 26300 · OBS 33.0.1 · MSVC 19.44 (VS 2022) · CMake 4.4.3.
 
@@ -9,16 +9,18 @@ Equipo de desarrollo: i7-1255U · Windows 11 build 26300 · OBS 33.0.1 · MSVC 1
 
 | Capacidad | Windows 10/11 x64 | macOS Intel | macOS Apple Silicon |
 |---|---|---|---|
-| Compilar núcleo y pruebas sin hardware | `PROBADO_LOCAL` (80/80 pruebas) | `NO_EVALUADO` (CI definida, no ejecutada) | `NO_EVALUADO` |
+| Compilar núcleo y pruebas sin hardware | `PROBADO_LOCAL` (106/106 pruebas) | `NO_EVALUADO` (CI definida, no ejecutada) | `NO_EVALUADO` |
 | Plugin carga en OBS 33.0.1 | `PROBADO_LOCAL` (GUI real y libobs sin interfaz) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Fuente simulada en OBS | `PROBADO_LOCAL` (1 kHz/2 kHz verificados tras OBS) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Captura con un driver de audio real | `PROBADO_LOCAL` con ReaRoute ASIO (16 canales, 48 kHz) | `NO_EVALUADO` (Core Audio sin compilar) | `NO_EVALUADO` |
-| Captura con Waves SoundGrid V17 + LV1 | `NO_EVALUADO` (HIL obligatorio) | `NO_EVALUADO` | `NO_EVALUADO` |
+| Captura con Waves SoundGrid V17 + LV1 | `PROBADO_HIL` **parcial** (driver 17.3.37.122: 4 entradas a 48 kHz hasta OBS; faltan duración, reconexión y patch confirmado) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Telemetría NIC (enlace, velocidad, errores) | `PROBADO_LOCAL` (Realtek GbE, sin admin) | `NO_EVALUADO` (código escrito) | `NO_EVALUADO` |
 | Alertas A01–A10, correlación y reconexión | `SIMULADO` (reloj virtual y simulador) | `SIMULADO` (mismo núcleo; sin ejecutar en Mac) | `SIMULADO` |
 | Panel de estado (propiedades) y Herramientas > SoundGrid Monitor | `PROBADO_LOCAL` (propiedades construidas en libobs; menú registrado en la GUI) | `NO_EVALUADO` | `NO_EVALUADO` |
-| Dock Qt dedicado | `NO_SOPORTADO` en 0.1.0 (ADR-014) | `NO_SOPORTADO` | `NO_SOPORTADO` |
-| Paquete | `PROBADO_LOCAL` (ZIP + install.ps1; instalación verificada) | `NO_EVALUADO` (script `.pkg` escrito) | `NO_EVALUADO` |
+| Aviso rojo de audio perdido en la ventana de OBS | `PROBADO_LOCAL` (barra Win32, probada con el simulador) | `NO_SOPORTADO` (sin implementar) | `NO_SOPORTADO` |
+| Reapertura del Control Panel y del servicio de Waves | `PROBADO_LOCAL` (Control Panel; el servicio solo con pruebas unitarias) | `NO_SOPORTADO` | `NO_SOPORTADO` |
+| Dock Qt dedicado | `NO_SOPORTADO` en 0.2.0 (ADR-014) | `NO_SOPORTADO` | `NO_SOPORTADO` |
+| Paquete | `PROBADO_LOCAL` (instalador `.exe` y ZIP; instalación y desinstalación verificadas) | `NO_EVALUADO` (script `.pkg` escrito) | `NO_EVALUADO` |
 | Firma de código / notarización | `NO_EVALUADO` (sin certificado) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Detección de la LV1 y nombres de canal LV1 | `BLOQUEADO` (sin API) | `BLOQUEADO` | `BLOQUEADO` |
 | SoundGrid nativo sin driver (ruta B) | `BLOQUEADO` (protocolo) | `BLOQUEADO` | `BLOQUEADO` |

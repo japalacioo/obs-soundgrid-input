@@ -1,6 +1,6 @@
-# Limitaciones conocidas (v0.1.0)
+# Limitaciones conocidas (v0.2.0)
 
-**Estado de validación:** NO PROBADO EN HARDWARE con Waves eMotion LV1 Classic V17 ni con el SoundGrid Driver V17. La captura ASIO se probó con otro driver ASIO real (ReaRoute) y el plugin con OBS 33.0.1 real en Windows 11.
+**Estado de validación:** prueba con hardware Waves **PARCIAL** en Windows 11 con OBS 33.0.1: se recibió audio de una eMotion LV1 Classic V17 por el SoundGrid Driver V17 (17.3.37.122) hasta OBS. Faltan las pruebas HIL de duración (T17/T18), reconexión con audio real (T44–T47), patch confirmado con el operador (T14/T15) y macOS.
 
 1. **Requiere el driver de Waves.**
    - El plugin es un cliente del SoundGrid Driver V17 (ASIO o Core Audio). Para la primera configuración hacen falta el driver, la selección de NIC en su panel, la asignación en la LV1 (Setup > Inventory) y el patch (Patch > Output).
