@@ -1,5 +1,17 @@
 # Notas de versión
 
+## 0.3.0 (17 de noviembre de 2026): avisos y Control Panel sin necesidad de fuentes
+
+**Autor:** Joan Palacio.
+
+### Nuevo
+- **Vigilancia global sin fuentes:** aunque no haya ninguna fuente SoundGrid, el plugin escucha el driver Waves (entradas 1–2) y la tarjeta de red de su Control Panel, y muestra la barra roja si deja de llegar audio, se cae el driver, se desconecta el cable o hay silencio prolongado. Se pausa mientras una fuente visible ya vigila el driver. Estado y desactivación en **Herramientas > SoundGrid Monitor**.
+- **El Control Panel y el servicio de Waves se mantienen abiertos en todo OBS**, aunque no haya fuentes (antes hacía falta una fuente con el driver Waves). Nueva entrada **Herramientas > Abrir SoundGrid Driver Control Panel**.
+- Ajustes globales del plugin en plugin_config\obs-soundgrid-input\settings.json.
+
+### Calidad
+- Probado en OBS 33.0.1 con la LV1 y sin fuentes SoundGrid: silencio real de la consola → barra roja; vuelta del audio → ámbar → verde → oculto (ver TEST_REPORT).
+- El driver Waves SoundGrid V17 aceptó dos clientes ASIO a la vez.
 ## 0.2.0 (17 de noviembre de 2026): primera captura con la LV1, avisos en OBS e instalador
 
 **Autor:** Joan Palacio.

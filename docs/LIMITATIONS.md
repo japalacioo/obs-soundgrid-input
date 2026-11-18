@@ -1,4 +1,4 @@
-# Limitaciones conocidas (v0.2.0)
+# Limitaciones conocidas (v0.3.0)
 
 **Estado de validación:** prueba con hardware Waves **PARCIAL** en Windows 11 con OBS 33.0.1: se recibió audio de una eMotion LV1 Classic V17 por el SoundGrid Driver V17 (17.3.37.122) hasta OBS. Faltan las pruebas HIL de duración (T17/T18), reconexión con audio real (T44–T47), patch confirmado con el operador (T14/T15) y macOS.
 
@@ -13,7 +13,8 @@
    - La latencia de entrada que informa el driver es una estimación.
    - La latencia de extremo a extremo (consola → OBS → salida) no se mide.
 6. **Telemetría de red.** Viene de la NIC del SO: enlace, velocidad y errores. No hay contadores de paquetes SoundGrid.
-7. **Varios clientes.** Si el driver de Waves admite un solo cliente, el plugin no puede compartirlo con un DAW o con la fuente ASIO nativa de OBS 33.1+ (lo informará como BUSY o INIT_FAILED). Varias fuentes de este plugin sí comparten el dispositivo.
+7. **Vigilancia global.** Sin fuentes, el plugin escucha solo las entradas 1–2 del primer driver Waves SoundGrid (no configurable todavía). Con el aviso de silencio activado, una pausa larga de la consola también enciende la barra.
+7b. **Varios clientes.** En la prueba, el driver Waves SoundGrid V17 aceptó dos clientes ASIO a la vez (OBS y la sonda). Si el driver de Waves admite un solo cliente, el plugin no puede compartirlo con un DAW o con la fuente ASIO nativa de OBS 33.1+ (lo informará como BUSY o INIT_FAILED). Varias fuentes de este plugin sí comparten el dispositivo.
 8. **Sin control de la consola ni del reloj.** No cambia la frecuencia, el buffer, el patch, la ganancia, el mute ni las escenas.
     - De Waves solo **abre** el Control Panel y el servicio `SGDawNodeService` si están cerrados (Windows, opción por fuente), con el mismo comando que registra Waves. No cambia su configuración: si el driver necesita volver a elegir la tarjeta de red tras asignarlo en la LV1, eso sigue siendo manual.
     - No se ha probado si reabrir el Control Panel por sí solo recupera el audio después de un fallo del driver; lo que transporta el audio es el servicio.

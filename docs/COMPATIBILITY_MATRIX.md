@@ -1,4 +1,4 @@
-# Matriz de compatibilidad (v0.2.0, 17 de noviembre de 2026)
+# Matriz de compatibilidad (v0.3.0, 17 de noviembre de 2026)
 
 Estados: `NO_EVALUADO`, `SIMULADO`, `COMPILA`, `PROBADO_LOCAL`, `PROBADO_HIL`, `BLOQUEADO`, `NO_SOPORTADO`.
 `PROBADO_LOCAL` significa probado en el equipo de desarrollo con hardware y drivers reales que **no son Waves**. Solo la captura con Waves en Windows tiene una prueba HIL, y es **parcial**.
@@ -19,7 +19,7 @@ Equipo de desarrollo: i7-1255U · Windows 11 build 26300 · OBS 33.0.1 · MSVC 1
 | Panel de estado (propiedades) y Herramientas > SoundGrid Monitor | `PROBADO_LOCAL` (propiedades construidas en libobs; menú registrado en la GUI) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Aviso rojo de audio perdido en la ventana de OBS | `PROBADO_LOCAL` (barra Win32, probada con el simulador) | `NO_SOPORTADO` (sin implementar) | `NO_SOPORTADO` |
 | Reapertura del Control Panel y del servicio de Waves | `PROBADO_LOCAL` (Control Panel; el servicio solo con pruebas unitarias) | `NO_SOPORTADO` | `NO_SOPORTADO` |
-| Dock Qt dedicado | `NO_SOPORTADO` en 0.2.0 (ADR-014) | `NO_SOPORTADO` | `NO_SOPORTADO` |
+| Dock Qt dedicado | `NO_SOPORTADO` en 0.3.0 (ADR-014) | `NO_SOPORTADO` | `NO_SOPORTADO` |
 | Paquete | `PROBADO_LOCAL` (instalador `.exe` y ZIP; instalación y desinstalación verificadas) | `NO_EVALUADO` (script `.pkg` escrito) | `NO_EVALUADO` |
 | Firma de código / notarización | `NO_EVALUADO` (sin certificado) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Detección de la LV1 y nombres de canal LV1 | `BLOQUEADO` (sin API) | `BLOQUEADO` | `BLOQUEADO` |

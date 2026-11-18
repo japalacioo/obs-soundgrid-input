@@ -1,7 +1,7 @@
 # Instalación
 
 ## Requisitos
-- **OBS Studio 33.x** (probado con 33.0.1). Windows 10/11 x64, o macOS (sin validar en 0.2.0).
+- **OBS Studio 33.x** (probado con 33.0.1). Windows 10/11 x64, o macOS (sin validar en 0.3.0).
 - Para audio real de la LV1:
   - **Waves SoundGrid Driver V17**: ASIO en Windows, Core Audio en macOS. Se instala con Waves Central.
   - Una NIC Gigabit dedicada conectada al switch SoundGrid.
@@ -18,7 +18,7 @@ Se instala en `%ProgramData%\obs-studio\plugins\obs-soundgrid-input\` para todos
 
 Instalación desatendida (por ejemplo, para varios equipos):
 ```bash
-obs-soundgrid-input-0.2.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+obs-soundgrid-input-0.3.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 Devuelve 0 si se instaló; si OBS está abierto, no instala y devuelve un código distinto de 0.
 

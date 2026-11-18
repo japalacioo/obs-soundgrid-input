@@ -2,7 +2,7 @@
 
 Plugin de OBS Studio para recibir audio de una consola **Waves eMotion LV1 Classic V17** a través del **Waves SoundGrid Driver V17**: ASIO en Windows y Core Audio en macOS. Incluye monitoreo y alertas operativas para producción en vivo.
 
-> **Estado 0.2.0:** compilado y probado en Windows 11 con OBS 33.0.1. **Prueba con hardware Waves PARCIAL:** audio de una LV1 Classic V17 recibido por el driver Waves SoundGrid V17 hasta OBS; faltan las pruebas HIL de duración, reconexión y patch. macOS: código escrito, sin compilar.
+> **Estado 0.3.0:** compilado y probado en Windows 11 con OBS 33.0.1. **Prueba con hardware Waves PARCIAL:** audio de una LV1 Classic V17 recibido por el driver Waves SoundGrid V17 hasta OBS; faltan las pruebas HIL de duración, reconexión y patch. macOS: código escrito, sin compilar.
 > **Requiere el driver de Waves.** Recibir SoundGrid sin driver está bloqueado por ser un protocolo propietario (ver [docs/NATIVE_FEASIBILITY.md](docs/NATIVE_FEASIBILITY.md)).
 
 ## Qué hace
@@ -14,6 +14,8 @@ Plugin de OBS Studio para recibir audio de una consola **Waves eMotion LV1 Class
   - Correlaciona causas: un cable suelto produce un incidente, no una cascada.
 - **Reconexión automática** solo del receptor. Nunca toca la consola, el reloj ni el patch.
 - **Aviso rojo en OBS** (Windows) en cuanto se deja de recibir audio, con la causa y la hora; ámbar mientras se verifica la recuperación y verde al recuperarse. Un clic abre el panel.
+  - Funciona **aunque no haya fuentes**: la vigilancia global escucha el driver Waves (entradas 1–2), incluido el silencio prolongado.
+- **Mantiene abiertos** el SoundGrid Driver Control Panel y el servicio de Waves (los reabre si se cierran).
 - **Configuración guiada:** detecta el driver Waves SoundGrid y la tarjeta de red que usa su Control Panel; los ajustes avanzados de alertas quedan ocultos hasta que se piden.
 - **Panel de estado** con indicadores separados (NIC, driver, patch, audio, consola y latencia). Nunca muestra un único "Conectado".
   - Se abre desde **Herramientas > SoundGrid Monitor**.

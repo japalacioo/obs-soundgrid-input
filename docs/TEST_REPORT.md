@@ -1,4 +1,4 @@
-# Informe de pruebas, v0.2.0
+# Informe de pruebas, v0.3.0
 
 **Fecha:** 17 de noviembre de 2026 · **Equipo:** i7-1255U, Windows 11 build 26300, OBS 33.0.1, MSVC 19.44, CMake 4.4.3.
 **Hardware Waves:** NINGUNO. No hubo eMotion LV1, SoundGrid Driver V17, switch ni red SoundGrid.
@@ -128,6 +128,20 @@ Panel: una fuente nueva quedó preconfigurada sola con el driver Waves SoundGrid
 | Servicio `SGDawNodeService` cerrado | NOT_RUN: no se cerró para no cortar el driver; la lógica es la misma y tiene pruebas unitarias |
 
 Durante esta prueba el enlace con la consola estaba caído desde las 18:55:54 (cable o consola, ajeno al plugin): A04 y la barra roja lo mostraron correctamente. El driver Waves siguió entregando silencio digital con el enlace caído; por eso A04 (estado de la NIC) es la alerta útil en ese caso.
+
+## Vigilancia global sin fuentes (Windows, LV1 real)
+
+OBS 33.0.1 con la colección del operador, que ya no tenía ninguna fuente SoundGrid (Mic/Aux usaba la entrada WDM "Line In (Waves SoundGrid)"):
+
+| Paso | Resultado |
+|---|---|
+| Arranque sin fuentes SoundGrid | "vigilancia global activa: driver 'asio:Waves SoundGrid', entradas 1–2, red 'Ethernet 2', con aviso de silencio prolongado"; el Control Panel se mantuvo abierto |
+| Enlace a 100 Mbps | A05 una sola vez (antes de la pausa salía doble con fuente y vigilancia global) |
+| La consola envió silencio (−132 dBFS) | A01 a las 19:35:31 y barra roja "SE PERDIÓ EL AUDIO … silencio" |
+| Volvió el audio (−17 dBFS) | Ámbar 19:35:36 → RESOLVED A01 y verde 19:35:41 → oculto 19:35:46 |
+| Herramientas > SoundGrid Monitor sin fuentes | Ventana con el estado de la vigilancia global y la opción de desactivarla |
+| Dos clientes ASIO a la vez | El driver Waves aceptó la sonda `sg_asio_probe` mientras OBS lo tenía abierto (−17 dBFS en 1–2) |
+| Pausa con una fuente visible | NOT_RUN en OBS (no se volvió a añadir la fuente que el operador había quitado) |
 
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).

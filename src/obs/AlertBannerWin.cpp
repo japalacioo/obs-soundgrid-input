@@ -4,6 +4,7 @@
 // también despacha los mensajes de esta ventana.
 #include "AlertBanner.h"
 
+#include "GlobalMonitor.h"
 #include "ObsSoundGridSource.h"
 
 #include <obs-frontend-api.h>
@@ -149,6 +150,12 @@ void paint(HWND hwnd)
 
 void tick()
 {
+    // Cada ~5 s: reintentar/aplicar la vigilancia global del driver Waves (en el hilo de interfaz).
+    static int maintainCounter = 0;
+    if (++maintainCounter >= 20) {
+        maintainCounter = 0;
+        maintainGlobalMonitor();
+    }
     const BannerState st = g_model.update(collectBannerInputs(), static_cast<int64_t>(os_gettime_ns()));
     if (st != g_state) {
         const bool becameLost = st.level == BannerLevel::Lost && g_state.level != BannerLevel::Lost;

@@ -41,6 +41,8 @@ add_library(obs-soundgrid-input MODULE
   Diagnostics.h Diagnostics.cpp
   AlertBanner.h
   WavesWatchdog.h WavesWatchdog.cpp
+  PluginSettings.h PluginSettings.cpp
+  GlobalMonitor.h GlobalMonitor.cpp
 )
 if(WIN32)
   target_sources(obs-soundgrid-input PRIVATE AlertBannerWin.cpp)

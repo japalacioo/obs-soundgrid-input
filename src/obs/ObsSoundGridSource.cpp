@@ -3,6 +3,7 @@
 #include "ObsSoundGridSource.h"
 
 #include "Diagnostics.h"
+#include "GlobalMonitor.h"
 #include "WavesWatchdog.h"
 #include "ObsSettingsStore.h"
 #include "platform/INetworkTelemetry.h"
@@ -43,6 +44,8 @@ constexpr const char *kBanner = "banner_enabled";
 constexpr const char *kShowAdvanced = "alerts.show_advanced";
 constexpr const char *kAutoDone = "autodetect_done";
 constexpr const char *kKeepWaves = "waves_keepalive";
+constexpr const char *kGlobalMon = "global.monitor";  // ajuste global, mostrado en cada fuente
+constexpr const char *kGlobalSil = "global.silence";  // ajuste global, mostrado en cada fuente
 constexpr const char *kNone = "";
 
 std::string chKey(int i)
@@ -72,7 +75,6 @@ struct SgSource {
     std::vector<float> zeros = std::vector<float>(Subscription::kMaxFramesPerSlot, 0.0f);
     bool streamFault = false; // botón de simulación (solo dispositivo simulado)
     std::atomic<bool> bannerEnabled{true};
-    std::atomic<bool> keepWaves{true}; // reabrir servicio y Control Panel de Waves si se cierran
     std::atomic<bool> usesWaves{false};
 };
 
@@ -88,7 +90,6 @@ bool isWavesDevice(const std::string &deviceId)
 void readUiFlags(SgSource *src, obs_data_t *s)
 {
     src->bannerEnabled = obs_data_get_bool(s, kBanner);
-    src->keepWaves = obs_data_get_bool(s, kKeepWaves);
     src->usesWaves = isWavesDevice(obs_data_get_string(s, kDevice));
 }
 
@@ -231,7 +232,7 @@ void *create(obs_data_t *settings, obs_source_t *source)
     }
     // Los textos informativos del panel se guardan como valores por defecto: así no se escriben en
     // la escena ni hacen que OBS pregunte por "cambios sin guardar". Se borran los de versiones previas.
-    for (const char *k : {kStatus, kSummary, "setup_info", "ch_info", "alerts_info", "credits"})
+    for (const char *k : {kStatus, kSummary, "setup_info", "ch_info", "alerts_info", "credits", kKeepWaves, kGlobalMon, kGlobalSil})
         obs_data_erase(settings, k);
     // Fuente nueva: preselecciona el driver Waves y la NIC del Control Panel (una sola vez, para
     // no deshacer una elección posterior del operador).
@@ -296,7 +297,7 @@ void getDefaults(obs_data_t *s)
     obs_data_set_default_bool(s, kArmed, false); // A01 desactivada hasta que el operador la arme
     obs_data_set_default_bool(s, kBanner, true);  // aviso rojo en OBS al perder el audio
     obs_data_set_default_bool(s, kShowAdvanced, false);
-    obs_data_set_default_bool(s, kKeepWaves, true);
+    obs_data_set_default_bool(s, kKeepWaves, wavesKeepAliveEnabled()); // ajuste global del plugin
     obs_data_set_default_string(s, kMockSignal, "sine");
     ObsSettingsStore defs(s, /*defaults=*/true);
     const AlertConfig d = AlertConfig::defaults(AlertProfile::Transmision);
@@ -448,6 +449,21 @@ bool onExport(obs_properties_t *props, obs_property_t *p, void *data)
     return onRefresh(props, p, data);
 }
 
+bool keepWavesChanged(obs_properties_t *, obs_property_t *, obs_data_t *s)
+{
+    setWavesKeepAliveEnabled(obs_data_get_bool(s, kKeepWaves));
+    return false;
+}
+
+bool globalMonitorChanged(obs_properties_t *, obs_property_t *, obs_data_t *s)
+{
+    if (obs_data_get_bool(s, kGlobalMon) != globalMonitorEnabled())
+        setGlobalMonitorEnabled(obs_data_get_bool(s, kGlobalMon));
+    if (obs_data_get_bool(s, kGlobalSil) != globalSilenceEnabled())
+        setGlobalSilenceEnabled(obs_data_get_bool(s, kGlobalSil));
+    return false;
+}
+
 bool onOpenWavesPanel(obs_properties_t *props, obs_property_t *p, void *data)
 {
     const std::string r = openWavesControlPanelNow();
@@ -579,8 +595,13 @@ obs_properties_t *getProperties(void *data)
         }
     }
     obs_property_set_long_description(nic, T_("NicHelp"));
+    // Ajuste global (vale para todo OBS, haya o no fuentes): se muestra como valor por defecto y al
+    // cambiarlo se guarda en la configuración del plugin, no en la fuente.
+    if (settings)
+        obs_data_set_default_bool(settings, kKeepWaves, wavesKeepAliveEnabled());
     obs_property_t *keep = obs_properties_add_bool(cn, kKeepWaves, T_("KeepWaves"));
     obs_property_set_long_description(keep, T_("KeepWavesHelp"));
+    obs_property_set_modified_callback(keep, keepWavesChanged);
     obs_properties_add_button2(cn, "open_waves_panel", T_("OpenWavesPanel"), onOpenWavesPanel, src);
     obs_property_t *mock = obs_properties_add_list(cn, kMockSignal, T_("MockSignal"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
     obs_property_list_add_string(mock, T_("MockSine"), "sine");
@@ -616,6 +637,16 @@ obs_properties_t *getProperties(void *data)
     obs_properties_t *al = obs_properties_create();
     obs_properties_add_bool(al, kBanner, T_("BannerEnabled"));
     obs_properties_add_bool(al, kArmed, T_("Armed"));
+    // Ajustes de todo OBS (no de esta fuente): vigilancia del driver Waves aunque no haya fuentes.
+    if (settings) {
+        obs_data_set_default_bool(settings, kGlobalMon, globalMonitorEnabled());
+        obs_data_set_default_bool(settings, kGlobalSil, globalSilenceEnabled());
+    }
+    obs_property_t *gm = obs_properties_add_bool(al, kGlobalMon, T_("GlobalMonitor"));
+    obs_property_set_long_description(gm, T_("GlobalMonitorHelp"));
+    obs_property_set_modified_callback(gm, globalMonitorChanged);
+    obs_property_t *gs = obs_properties_add_bool(al, kGlobalSil, T_("GlobalSilence"));
+    obs_property_set_modified_callback(gs, globalMonitorChanged);
     obs_property_t *adv = obs_properties_add_bool(al, kShowAdvanced, T_("ShowAdvanced"));
     obs_property_set_modified_callback(adv, advancedChanged);
     const bool showAdv = settings && obs_data_get_bool(settings, kShowAdvanced);
@@ -721,7 +752,8 @@ void openSoundGridMonitor()
         },
         &found);
     if (!found) {
-        blog(LOG_WARNING, "[soundgrid] SoundGrid Monitor: no hay ninguna fuente 'SoundGrid Input'. Añádela en Fuentes.");
+        // Sin fuentes: estado de la vigilancia global del driver Waves (y opción de desactivarla).
+        showGlobalMonitorDialog();
         return;
     }
     obs_frontend_open_source_properties(found);
@@ -731,31 +763,40 @@ void openSoundGridMonitor()
 std::vector<BannerSourceInput> collectBannerInputs()
 {
     std::vector<BannerSourceInput> out;
-    std::lock_guard lk(g_srcMu);
-    out.reserve(g_sources.size());
-    for (SgSource *src : g_sources) {
-        if (!src->session)
-            continue;
-        // Solo cuenta lo que llega a la salida: una fuente eliminada o que no está en ninguna escena
-        // visible (ni como audio global) no produce un aviso, aunque OBS aún no la haya destruido.
-        if (!src->source || obs_source_removed(src->source) || !obs_source_showing(src->source))
-            continue;
-        const SessionStatus st = src->session->status();
-        BannerSourceInput in;
-        in.sourceName = src->session->name();
-        in.bannerEnabled = src->bannerEnabled.load();
-        in.notificationsMuted = st.notificationsMuted;
-        in.openIncidents = st.openIncidents;
-        out.push_back(std::move(in));
+    bool wavesCovered = false; // una fuente visible ya vigila el driver Waves
+    {
+        std::lock_guard lk(g_srcMu);
+        out.reserve(g_sources.size() + 1);
+        for (SgSource *src : g_sources) {
+            if (!src->session)
+                continue;
+            // Solo cuenta lo que llega a la salida: una fuente eliminada o que no está en ninguna escena
+            // visible (ni como audio global) no produce un aviso, aunque OBS aún no la haya destruido.
+            if (!src->source || obs_source_removed(src->source) || !obs_source_showing(src->source))
+                continue;
+            wavesCovered |= src->usesWaves.load() && src->bannerEnabled.load();
+            const SessionStatus st = src->session->status();
+            BannerSourceInput in;
+            in.sourceName = src->session->name();
+            in.bannerEnabled = src->bannerEnabled.load();
+            in.notificationsMuted = st.notificationsMuted;
+            in.openIncidents = st.openIncidents;
+            out.push_back(std::move(in));
+        }
     }
+    // Vigilancia global del driver Waves: solo si ninguna fuente visible lo cubre ya (sin avisos dobles).
+    if (!wavesCovered)
+        if (auto g = globalMonitorBannerInput())
+            out.push_back(std::move(*g));
     return out;
 }
 
-bool wavesKeepAliveWanted()
+bool visibleWavesSourceExists()
 {
     std::lock_guard lk(g_srcMu);
     for (SgSource *src : g_sources)
-        if (src->source && !obs_source_removed(src->source) && src->keepWaves.load() && src->usesWaves.load())
+        if (src->session && src->source && !obs_source_removed(src->source) && obs_source_showing(src->source) &&
+            src->usesWaves.load() && src->bannerEnabled.load())
             return true;
     return false;
 }
@@ -764,6 +805,8 @@ void openSourcePropertiesByName(const std::string &name)
 {
     if (name.empty())
         return openSoundGridMonitor();
+    if (name == kGlobalMonitorName)
+        return showGlobalMonitorDialog();
     obs_source_t *s = obs_get_source_by_name(name.c_str());
     if (!s)
         return openSoundGridMonitor();

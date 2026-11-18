@@ -1,6 +1,6 @@
 #include "WavesWatchdog.h"
 
-#include "ObsSoundGridSource.h"
+#include "PluginSettings.h"
 #include "platform/WavesCompanion.h"
 
 #include <obs-module.h>
@@ -32,9 +32,19 @@ std::mutex g_waitMu;
 std::condition_variable g_cv;
 bool g_stop = false;
 
+// Ajuste global persistente (settings.json del plugin).
+std::atomic<bool> g_enabled{true};
+std::atomic<bool> g_loaded{false};
+
+void loadSetting()
+{
+    if (g_loaded.exchange(true))
+        return;
+    g_enabled = settings::getBool(settings::kKeepWavesApps, true);
+}
 void pollOnce()
 {
-    const bool wanted = wavesKeepAliveWanted();
+    const bool wanted = g_enabled.load();
     std::lock_guard lk(g_mu);
     if (!g_ops)
         return;
@@ -71,8 +81,24 @@ void run()
 
 } // namespace
 
+bool wavesKeepAliveEnabled()
+{
+    loadSetting();
+    return g_enabled.load();
+}
+
+void setWavesKeepAliveEnabled(bool on)
+{
+    loadSetting();
+    if (g_enabled.exchange(on) == on)
+        return;
+    settings::setBool(settings::kKeepWavesApps, on);
+    blog(LOG_INFO, "[soundgrid] mantener abiertas las aplicaciones de Waves: %s", on ? "activado" : "desactivado");
+}
+
 void startWavesWatchdog()
 {
+    loadSetting();
     {
         std::lock_guard lk(g_mu);
         if (g_ops)
@@ -87,6 +113,8 @@ void startWavesWatchdog()
             return;
         }
     }
+    blog(LOG_INFO, "[soundgrid] aplicaciones de Waves encontradas; mantenerlas abiertas: %s",
+         g_enabled.load() ? "sí (aunque no haya fuentes SoundGrid)" : "no");
     {
         std::lock_guard lk(g_waitMu);
         g_stop = false;

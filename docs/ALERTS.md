@@ -16,6 +16,15 @@ Si una fuente deja de recibir audio aparece una **barra roja en la parte superio
 - Solo cuentan las fuentes que están en una escena visible (o como audio global).
 - Las demás alertas (red lenta, errores, latencia, clipping, cortes) no muestran la barra: siguen en el panel y en el log.
 
+### Vigilancia global (sin fuentes)
+
+Aunque no haya ninguna fuente "SoundGrid Input (Waves)", el plugin vigila el driver Waves y muestra la misma barra:
+- Escucha el primer driver Waves SoundGrid, **entradas 1–2**, y la tarjeta de red elegida en su Control Panel. No entrega ese audio a OBS: solo lo mide.
+- Alertas: sin muestras (A02), driver perdido (A03), cable o red (A04) y, si está activado, silencio prolongado (A01, < −60 dBFS durante 10 s). En el log aparece como fuente "Driver Waves (vigilancia global)".
+- Se pausa mientras una fuente SoundGrid visible ya vigila el driver Waves (sin avisos dobles) y se reanuda sola en unos 5 s cuando deja de haberla.
+- Ajustes de todo OBS, activados por defecto: "Vigilar el audio del driver Waves aunque no haya fuentes" y "avisar también si hay silencio prolongado". Se cambian desde cualquier fuente SoundGrid (3 · Avisos) o, sin fuentes, en **Herramientas > SoundGrid Monitor**, que muestra su estado.
+- Con la vigilancia de silencio activada, una pausa larga de la consola también enciende la barra (ámbar y verde al volver el sonido).
+
 ## Configuración
 
 Todas las reglas son configurables por fuente (Propiedades > **3 · Avisos y alertas** > "Mostrar ajustes avanzados"). Los umbrales iniciales salen del plan §4A y del SDD-09 y **deben calibrarse en laboratorio**. Ninguna alerta cambia el audio, el ruteo ni la consola.

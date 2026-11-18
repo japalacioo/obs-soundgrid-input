@@ -1,5 +1,6 @@
 // Punto de entrada del módulo OBS "obs-soundgrid-input".
 #include "AlertBanner.h"
+#include "GlobalMonitor.h"
 #include "ObsSoundGridSource.h"
 #include "WavesWatchdog.h"
 
@@ -47,15 +48,22 @@ void toolsMenu(void *)
     sg::openSoundGridMonitor();
 }
 
+void openWavesPanelMenu(void *)
+{
+    blog(LOG_INFO, "[soundgrid] %s", sg::openWavesControlPanelNow().c_str());
+}
+
 // El aviso rojo se crea cuando la ventana principal ya existe y se retira antes de cerrarla.
 void onFrontendEvent(enum obs_frontend_event event, void *)
 {
     if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING) {
+        sg::startGlobalMonitor(); // escucha el driver Waves aunque no haya fuentes
         sg::startAlertBanner();
         sg::startWavesWatchdog();
     } else if (event == OBS_FRONTEND_EVENT_EXIT) {
         sg::stopWavesWatchdog(); // al cerrar OBS no se reabre nada
         sg::stopAlertBanner();
+        sg::stopGlobalMonitor();
     }
 }
 
@@ -75,6 +83,7 @@ bool obs_module_load(void)
     sg::setPluginRuntime(rt);
     sg::registerSoundGridSource();
     obs_frontend_add_tools_menu_item(obs_module_text("SoundGridMonitor"), toolsMenu, nullptr);
+    obs_frontend_add_tools_menu_item(obs_module_text("OpenWavesPanel"), openWavesPanelMenu, nullptr);
     obs_frontend_add_event_callback(onFrontendEvent, nullptr);
 
     std::string backends;
@@ -91,6 +100,7 @@ void obs_module_unload(void)
     obs_frontend_remove_event_callback(onFrontendEvent, nullptr);
     sg::stopWavesWatchdog();
     sg::stopAlertBanner();
+    sg::stopGlobalMonitor();
     auto rt = sg::pluginRuntime();
     sg::setPluginRuntime(nullptr);
     if (rt)
