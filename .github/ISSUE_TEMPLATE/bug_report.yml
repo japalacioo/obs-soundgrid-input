@@ -1,0 +1,44 @@
+name: Informe de error / Bug report
+description: Algo no funciona como esperabas / Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por informar. Para problemas de seguridad usa la pestaña **Security**, no un issue público.
+        Thanks for reporting. For security issues use the **Security** tab, not a public issue.
+  - type: input
+    id: plugin
+    attributes:
+      label: Versión del plugin / Plugin version
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: obs
+    attributes:
+      label: Versión de OBS y de Windows / OBS and Windows version
+      placeholder: "OBS 33.0.1, Windows 11 24H2"
+    validations:
+      required: true
+  - type: input
+    id: waves
+    attributes:
+      label: SoundGrid Driver y consola / SoundGrid Driver and console
+      placeholder: "SoundGrid Driver 17.3.37.122, eMotion LV1 Classic V17"
+  - type: textarea
+    id: what
+    attributes:
+      label: Qué pasó y qué esperabas / What happened and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducirlo / Steps to reproduce
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log de OBS (líneas [soundgrid]) y diagnóstico / OBS log ([soundgrid] lines) and diagnostics
+      description: Ayuda > Archivos de registro; botón "Exportar diagnóstico" del panel. / Help > Log Files; "Export diagnostics" button.
+      render: text

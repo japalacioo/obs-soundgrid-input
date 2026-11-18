@@ -1,10 +1,10 @@
-# CI Windows/macOS (SDD-01, SDD-13). ESTADO: definido, NO ejecutado todavía (el repositorio
-# no tiene remoto). Las pruebas HIL (LV1 real) nunca se ejecutan en CI.
+# CI Windows/macOS (SDD-01, SDD-13). ESTADO: definida pero aún NO validada en los runners de GitHub,
+# por eso solo se ejecuta a mano (Actions > ci > Run workflow). Las pruebas HIL (LV1 real) nunca se
+# ejecutan en CI. Cuando pase, se puede volver a activar con push/pull_request.
 name: ci
 
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   windows:

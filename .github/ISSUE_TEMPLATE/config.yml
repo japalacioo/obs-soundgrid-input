@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Guía de instalación / Installation guide
+    url: https://github.com/japalacioo/obs-soundgrid-input/blob/main/docs/INSTALL.md
+    about: Descargar, instalar y configurar con la LV1 / Download, install and set up with the LV1
+  - name: Problemas frecuentes / Troubleshooting
+    url: https://github.com/japalacioo/obs-soundgrid-input/blob/main/docs/TROUBLESHOOTING.md
+    about: Revisa aquí antes de abrir un issue / Check here before opening an issue

@@ -1,0 +1,14 @@
+name: Sugerencia / Feature request
+description: Propón una mejora / Suggest an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Qué necesitas y para qué / What you need and why
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Tu sistema (consola, driver, OBS) / Your setup (console, driver, OBS)
