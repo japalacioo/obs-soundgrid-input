@@ -3,6 +3,7 @@
 #include "ObsSoundGridSource.h"
 
 #include "Diagnostics.h"
+#include "WavesWatchdog.h"
 #include "ObsSettingsStore.h"
 #include "platform/INetworkTelemetry.h"
 #include "platform/WavesDriverPrefs.h"
@@ -41,6 +42,7 @@ constexpr const char *kSummary = "summary_text";
 constexpr const char *kBanner = "banner_enabled";
 constexpr const char *kShowAdvanced = "alerts.show_advanced";
 constexpr const char *kAutoDone = "autodetect_done";
+constexpr const char *kKeepWaves = "waves_keepalive";
 constexpr const char *kNone = "";
 
 std::string chKey(int i)
@@ -70,7 +72,25 @@ struct SgSource {
     std::vector<float> zeros = std::vector<float>(Subscription::kMaxFramesPerSlot, 0.0f);
     bool streamFault = false; // botón de simulación (solo dispositivo simulado)
     std::atomic<bool> bannerEnabled{true};
+    std::atomic<bool> keepWaves{true}; // reabrir servicio y Control Panel de Waves si se cierran
+    std::atomic<bool> usesWaves{false};
 };
+
+bool isWavesDevice(const std::string &deviceId)
+{
+    if (deviceId.rfind("mock:", 0) == 0)
+        return false;
+    std::string l = deviceId;
+    std::transform(l.begin(), l.end(), l.begin(), [](unsigned char c) { return static_cast<char>(tolower(c)); });
+    return l.find("soundgrid") != std::string::npos;
+}
+
+void readUiFlags(SgSource *src, obs_data_t *s)
+{
+    src->bannerEnabled = obs_data_get_bool(s, kBanner);
+    src->keepWaves = obs_data_get_bool(s, kKeepWaves);
+    src->usesWaves = isWavesDevice(obs_data_get_string(s, kDevice));
+}
 
 // Fuentes vivas, para el aviso de audio perdido de la ventana principal.
 std::mutex g_srcMu;
@@ -167,7 +187,13 @@ void refreshStatusText(SgSource *src, obs_data_t *settings)
     if (!src->session)
         return;
     const SessionStatus st = src->session->status();
-    obs_data_set_default_string(settings, kStatus, formatStatusText(st).c_str());
+    std::string detail = formatStatusText(st);
+    if (src->usesWaves) {
+        const std::string waves = wavesWatchdogStatusText();
+        if (!waves.empty())
+            detail += "\n" + waves;
+    }
+    obs_data_set_default_string(settings, kStatus, detail.c_str());
     obs_data_set_default_string(settings, kSummary, formatStatusSummary(st).c_str());
 }
 
@@ -215,7 +241,7 @@ void *create(obs_data_t *settings, obs_source_t *source)
         if (!found.empty())
             blog(LOG_INFO, "[soundgrid] configuración automática: %s", found.c_str());
     }
-    src->bannerEnabled = obs_data_get_bool(settings, kBanner);
+    readUiFlags(src, settings);
     const std::vector<float> *zeros = &src->zeros;
     src->session = std::make_shared<SourceSession>(*src->rt, obs_source_get_name(source),
                                                    [source, zeros](const PcmBlock &b) { outputBlock(source, *zeros, b); });
@@ -251,7 +277,7 @@ void destroy(void *data)
 void update(void *data, obs_data_t *settings)
 {
     auto *src = static_cast<SgSource *>(data);
-    src->bannerEnabled = obs_data_get_bool(settings, kBanner);
+    readUiFlags(src, settings);
     if (!src->session)
         return;
     src->session->rename(obs_source_get_name(src->source));
@@ -270,6 +296,7 @@ void getDefaults(obs_data_t *s)
     obs_data_set_default_bool(s, kArmed, false); // A01 desactivada hasta que el operador la arme
     obs_data_set_default_bool(s, kBanner, true);  // aviso rojo en OBS al perder el audio
     obs_data_set_default_bool(s, kShowAdvanced, false);
+    obs_data_set_default_bool(s, kKeepWaves, true);
     obs_data_set_default_string(s, kMockSignal, "sine");
     ObsSettingsStore defs(s, /*defaults=*/true);
     const AlertConfig d = AlertConfig::defaults(AlertProfile::Transmision);
@@ -421,6 +448,13 @@ bool onExport(obs_properties_t *props, obs_property_t *p, void *data)
     return onRefresh(props, p, data);
 }
 
+bool onOpenWavesPanel(obs_properties_t *props, obs_property_t *p, void *data)
+{
+    const std::string r = openWavesControlPanelNow();
+    blog(LOG_INFO, "[soundgrid] %s", r.c_str());
+    return onRefresh(props, p, data);
+}
+
 bool onAutodetect(obs_properties_t *, obs_property_t *, void *data)
 {
     auto *src = static_cast<SgSource *>(data);
@@ -545,6 +579,9 @@ obs_properties_t *getProperties(void *data)
         }
     }
     obs_property_set_long_description(nic, T_("NicHelp"));
+    obs_property_t *keep = obs_properties_add_bool(cn, kKeepWaves, T_("KeepWaves"));
+    obs_property_set_long_description(keep, T_("KeepWavesHelp"));
+    obs_properties_add_button2(cn, "open_waves_panel", T_("OpenWavesPanel"), onOpenWavesPanel, src);
     obs_property_t *mock = obs_properties_add_list(cn, kMockSignal, T_("MockSignal"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
     obs_property_list_add_string(mock, T_("MockSine"), "sine");
     obs_property_list_add_string(mock, T_("MockPink"), "pink");
@@ -712,6 +749,15 @@ std::vector<BannerSourceInput> collectBannerInputs()
         out.push_back(std::move(in));
     }
     return out;
+}
+
+bool wavesKeepAliveWanted()
+{
+    std::lock_guard lk(g_srcMu);
+    for (SgSource *src : g_sources)
+        if (src->source && !obs_source_removed(src->source) && src->keepWaves.load() && src->usesWaves.load())
+            return true;
+    return false;
 }
 
 void openSourcePropertiesByName(const std::string &name)

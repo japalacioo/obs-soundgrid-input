@@ -3,6 +3,7 @@
 // (NIC, enumeración y ciclo de vida de drivers) y nunca se cuentan como prueba HIL.
 #include "core/SourceSession.h"
 #include "platform/INetworkTelemetry.h"
+#include "platform/WavesCompanion.h"
 #if defined(SG_HAVE_ASIO)
 #include "platform/windows/AsioTransport.h"
 #endif
@@ -114,6 +115,21 @@ TEST(Platform_ASIO, OpenStartStopEveryInstalledDriverSafely)
     }
 }
 #endif
+
+// Solo lectura: localiza las aplicaciones de Waves en el registro y si están abiertas. No abre nada.
+TEST(Platform_Waves, FindsCompanionAppsWithoutLaunching)
+{
+    auto ops = createPlatformProcessOps();
+    for (const auto &t : {wavesNodeServiceTarget(), wavesControlPanelTarget()}) {
+        if (!t) {
+            std::printf("  (no instalado)\n");
+            continue;
+        }
+        std::printf("  %s: %s %s · abierto=%d\n", t->label.c_str(), t->exePath.c_str(), t->args.c_str(),
+                    ops->isRunning(t->processName) ? 1 : 0);
+        EXPECT_FALSE(t->exePath.empty());
+    }
+}
 
 #if defined(SG_HAVE_COREAUDIO)
 TEST(Platform_CoreAudio, EnumeratesInputDevices)

@@ -15,6 +15,8 @@
 6. **Telemetría de red.** Viene de la NIC del SO: enlace, velocidad y errores. No hay contadores de paquetes SoundGrid.
 7. **Varios clientes.** Si el driver de Waves admite un solo cliente, el plugin no puede compartirlo con un DAW o con la fuente ASIO nativa de OBS 33.1+ (lo informará como BUSY o INIT_FAILED). Varias fuentes de este plugin sí comparten el dispositivo.
 8. **Sin control de la consola ni del reloj.** No cambia la frecuencia, el buffer, el patch, la ganancia, el mute ni las escenas.
+    - De Waves solo **abre** el Control Panel y el servicio `SGDawNodeService` si están cerrados (Windows, opción por fuente), con el mismo comando que registra Waves. No cambia su configuración: si el driver necesita volver a elegir la tarjeta de red tras asignarlo en la LV1, eso sigue siendo manual.
+    - No se ha probado si reabrir el Control Panel por sí solo recupera el audio después de un fallo del driver; lo que transporta el audio es el servicio.
 9. **macOS no validado.** El código Core Audio y NIC de macOS está escrito pero no se ha compilado ni probado. Waves desaconseja grabar en Apple Silicon (cortes intermitentes) y más de 32 canales por el Ethernet integrado del Mac.
 10. **Interfaz.**
     - En Windows, la pérdida de audio se muestra con una barra roja en la parte superior de OBS (ADR-014). En macOS y Linux todavía no: el estado está en las propiedades de la fuente.

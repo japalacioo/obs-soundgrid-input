@@ -17,6 +17,7 @@ add_executable(sg_unit_tests
   unit/test_realtime.cpp
   unit/test_review_fixes.cpp
   unit/test_banner.cpp
+  unit/test_waves_companion.cpp
   unit/TestHelpers.h
 )
 target_link_libraries(sg_unit_tests PRIVATE sg_core GTest::gtest_main)

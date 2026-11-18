@@ -21,6 +21,8 @@ void registerSoundGridSource();
 void openSoundGridMonitor();
 // Estado de alertas de todas las fuentes vivas, para el aviso de la ventana principal.
 std::vector<BannerSourceInput> collectBannerInputs();
+// ¿Alguna fuente usa el driver Waves con "Mantener abiertas las aplicaciones de Waves"?
+bool wavesKeepAliveWanted();
 // Abre las propiedades de la fuente con ese nombre (o la primera SoundGrid si no existe).
 void openSourcePropertiesByName(const std::string &name);
 

@@ -29,9 +29,9 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 | Suite | Resultado |
 |---|---|
-| CTest Release completo (unit, platform, obs, soak) | **98/98 PASS** |
-| Unitarias (`sg_unit_tests`) | 93/93 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md) y 11 del aviso de audio perdido) |
-| Plataforma, hardware real no Waves (`sg_platform_tests`) | 3/3 PASS |
+| CTest Release completo (unit, platform, obs, soak) | **106/106 PASS** |
+| Unitarias (`sg_unit_tests`) | 100/100 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md), 11 del aviso de audio perdido y 7 de la reapertura de Waves) |
+| Plataforma, hardware real (`sg_platform_tests`) | 4/4 PASS (incluye localizar las aplicaciones de Waves) |
 | Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 21/21 comprobaciones PASS (incluye autor, créditos y el panel simplificado) · `bnum_allocs` = 0 al cerrar |
 | OBS 33.0.1 con interfaz (instalación real) | Carga en "Loaded Modules"; init ≈ 1 ms; descarga limpia; OBS sale con código 0 |
 | Resistencia 2 min con 12 hilos de CPU al 100 % | PASS: 0 cortes, 0 huecos, latencia máx 0,19 ms, memoria estable |
@@ -115,6 +115,19 @@ Probado en OBS 33.0.1 con interfaz, con una fuente temporal del simulador y su b
 | Cancelar el diálogo de propiedades | Ya no pregunta por "cambios sin guardar" (los textos informativos no se guardan como ajustes) |
 
 Panel: una fuente nueva quedó preconfigurada sola con el driver Waves SoundGrid, la tarjeta de red del Control Panel y las entradas 1 y 2.
+
+## Reapertura de las aplicaciones de Waves (Windows)
+
+7 pruebas unitarias de la lógica (abre si falta, no duplica mientras arranca, reabre tras un cierre, se rinde tras 5 cierres rápidos o errores, olvida fallos tras 2 min estable, sin bucle si pide administrador). En OBS 33.0.1 real:
+
+| Paso | Resultado |
+|---|---|
+| OBS arranca con el Control Panel cerrado | A los ~3 s el plugin lo abre minimizado (proceso hijo de OBS); log "no estaba abierto; se abrió (minimizado)" |
+| Cerrar el Control Panel desde su ventana | Reabierto en menos de 1 s; OBS conserva el foco |
+| Panel de la fuente | Opción "Mantener abiertos…" activada, botón "Abrir SoundGrid Driver Control Panel" y la línea "Aplicaciones Waves: servicio en marcha · Control Panel abierto (reabierto 2 veces)" |
+| Servicio `SGDawNodeService` cerrado | NOT_RUN: no se cerró para no cortar el driver; la lógica es la misma y tiene pruebas unitarias |
+
+Durante esta prueba el enlace con la consola estaba caído desde las 18:55:54 (cable o consola, ajeno al plugin): A04 y la barra roja lo mostraron correctamente. El driver Waves siguió entregando silencio digital con el enlace caído; por eso A04 (estado de la NIC) es la alerta útil en ese caso.
 
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).

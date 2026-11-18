@@ -8,6 +8,7 @@ add_library(sg_core STATIC
   transport/DeviceHub.h transport/DeviceHub.cpp
   transport/TransportManager.h transport/TransportManager.cpp
   platform/INetworkTelemetry.h platform/WavesDriverPrefs.h platform/WavesDriverPrefs.cpp
+  platform/WavesCompanion.h platform/WavesCompanion.cpp
   observability/HealthSnapshot.h observability/AlertTypes.h
   observability/AudioLossBanner.h observability/AudioLossBanner.cpp
   observability/AlertEngine.h observability/AlertEngine.cpp
@@ -20,21 +21,21 @@ find_package(Threads REQUIRED)
 target_link_libraries(sg_core PUBLIC Threads::Threads)
 
 if(WIN32)
-  target_sources(sg_core PRIVATE platform/windows/WindowsNicTelemetry.cpp)
+  target_sources(sg_core PRIVATE platform/windows/WindowsNicTelemetry.cpp platform/windows/WavesCompanionWin.cpp)
   target_link_libraries(sg_core PUBLIC iphlpapi ole32)
   if(SG_ENABLE_ASIO)
     target_sources(sg_core PRIVATE platform/windows/AsioTransport.h platform/windows/AsioTransport.cpp)
     target_compile_definitions(sg_core PUBLIC SG_HAVE_ASIO=1)
   endif()
 elseif(APPLE)
-  target_sources(sg_core PRIVATE platform/macos/MacNicTelemetry.cpp)
+  target_sources(sg_core PRIVATE platform/macos/MacNicTelemetry.cpp platform/WavesCompanionNull.cpp)
   if(SG_ENABLE_COREAUDIO)
     target_sources(sg_core PRIVATE platform/macos/CoreAudioTransport.h platform/macos/CoreAudioTransport.cpp)
     target_compile_definitions(sg_core PUBLIC SG_HAVE_COREAUDIO=1)
     target_link_libraries(sg_core PUBLIC "-framework CoreAudio" "-framework CoreFoundation")
   endif()
 else()
-  target_sources(sg_core PRIVATE platform/NullNicTelemetry.cpp)
+  target_sources(sg_core PRIVATE platform/NullNicTelemetry.cpp platform/WavesCompanionNull.cpp)
 endif()
 
 # --------------------------------------------------------------------------- plugin OBS

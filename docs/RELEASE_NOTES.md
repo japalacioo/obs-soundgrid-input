@@ -23,6 +23,10 @@
 - **Telemetría de red pasiva:** enlace, velocidad y errores de la NIC, sin tráfico ni privilegios.
 - **Reconexión automática** solo del receptor: backoff de 1 a 30 s con jitter y detección de bloqueo a 3 s.
 - **Aviso rojo en la parte superior de OBS** (Windows) cuando se pierde el audio; ámbar mientras se verifica la vuelta y verde al recuperarse. Un clic abre el panel de la fuente.
+- **Mantiene abiertas las aplicaciones de Waves** (Windows):
+  - Si el SoundGrid Driver Control Panel o el servicio de Waves (`SGDawNodeService`) no están abiertos, o se cierran durante una transmisión, el plugin los vuelve a abrir en ~2 s.
+  - Se abren minimizados, sin quitar el foco a OBS y sin pedir permisos de administrador.
+  - Tras 5 cierres seguidos deja de insistir. Hay un botón "Abrir SoundGrid Driver Control Panel" y una opción por fuente para desactivarlo.
 - **Panel más simple:**
   - Pasos numerados: 1 · Conexión, 2 · Canales, 3 · Avisos.
   - Resumen de una línea arriba.
@@ -35,7 +39,7 @@
 - **Simulador integrado** de 32 canales: tonos, ruido rosa, silencio, impulsos, clipping y fallo de flujo.
 
 ### Calidad
-- 98 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta), todas PASS.
+- 106 pruebas automáticas (unitarias, plataforma, integración con libobs 33.0.1 real y resistencia corta), todas PASS.
 - 0 asignaciones en el callback de audio.
 - Resistencia de 2 h con el simulador: 0 cortes, 0 huecos y 0 desbordes en 4 fuentes; memoria +0,1 MB (ver TEST_REPORT).
 - Revisión de concurrencia y tiempo real: 12 hallazgos corregidos con pruebas de regresión (ver REVIEW_2026-11-17).
