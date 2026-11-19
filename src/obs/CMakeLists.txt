@@ -7,13 +7,21 @@ set(_sg_have_obs FALSE)
 if(SG_OBS_SDK_DIR AND EXISTS "${SG_OBS_SDK_DIR}/include/libobs/obs-module.h")
   add_library(sg_libobs INTERFACE)
   target_include_directories(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/include/libobs")
+  if(EXISTS "${SG_OBS_SDK_DIR}/include/simde")
+    target_include_directories(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/include")
+  endif()
   if(WIN32)
     target_link_libraries(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/lib/obs.lib")
+  elseif(APPLE)
+    # Stubs .tbd generados por tools/make-obs-sdk.sh (universales aunque OBS.app no lo sea).
+    target_link_libraries(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/lib/libobs.tbd")
   endif()
   add_library(sg_frontend INTERFACE)
   target_include_directories(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/include/frontend-api")
   if(WIN32 AND EXISTS "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.lib")
     target_link_libraries(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.lib")
+  elseif(APPLE AND EXISTS "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.tbd")
+    target_link_libraries(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.tbd")
   endif()
   set(_sg_obs_target sg_libobs)
   set(_sg_fe_target sg_frontend)
@@ -62,12 +70,24 @@ if(MSVC)
   target_sources(obs-soundgrid-input PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 endif()
 if(APPLE)
-  set_target_properties(obs-soundgrid-input PROPERTIES BUNDLE TRUE BUNDLE_EXTENSION plugin)
+  set_target_properties(obs-soundgrid-input PROPERTIES
+    BUNDLE TRUE BUNDLE_EXTENSION plugin
+    MACOSX_BUNDLE_GUI_IDENTIFIER com.obs-soundgrid-input.plugin
+    MACOSX_BUNDLE_BUNDLE_NAME obs-soundgrid-input
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2026 ${SG_PLUGIN_AUTHOR}. GPLv3"
+    INSTALL_RPATH "@executable_path/../Frameworks")
+  # En un bundle .plugin, OBS busca los datos (locale/) en Contents/Resources.
+  add_custom_command(TARGET obs-soundgrid-input POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data
+            $<TARGET_BUNDLE_CONTENT_DIR:obs-soundgrid-input>/Resources)
+else()
+  # Copia de datos (locales) junto al binario para pruebas y empaquetado.
+  add_custom_command(TARGET obs-soundgrid-input POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:obs-soundgrid-input>/data)
 endif()
-
-# Copia de datos (locales) junto al binario para pruebas y empaquetado.
-add_custom_command(TARGET obs-soundgrid-input POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:obs-soundgrid-input>/data)
 
 # Host de integración: carga libobs real (obs.dll) sin interfaz y verifica la fuente.
 if(SG_BUILD_TESTS AND WIN32)
