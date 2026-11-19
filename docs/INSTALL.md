@@ -111,12 +111,39 @@ No registra desinstalador en Aplicaciones. Si ya instalaste con el `.exe`, usa e
 
 ## macOS
 
-No hay instalador: el código de macOS está escrito pero **no se ha compilado ni probado**. Ver [LIMITATIONS.md](LIMITATIONS.md).
+**Experimental.** El plugin compila como binario universal (Apple Silicon e Intel) y carga en OBS 33.0.1 en macOS 26, pero **no se ha probado con hardware Waves en Mac** y la barra roja de aviso todavía no existe en macOS (las alertas salen en el panel de la fuente y en el log). Ver [LIMITATIONS.md](LIMITATIONS.md).
+
+1. Cierra OBS.
+2. Abre **`obs-soundgrid-input-<versión>-macos-universal.pkg`**. No está firmado: si macOS lo bloquea, ve a **Ajustes del Sistema > Privacidad y seguridad > Abrir igualmente**.
+3. Se instala solo para tu usuario en `~/Library/Application Support/obs-studio/plugins/obs-soundgrid-input.plugin` (OBS 30+ solo carga plugins `.plugin` desde esa carpeta). No pide contraseña.
+4. Abre OBS y acepta el permiso de **micrófono** cuando lo pida; sin él Core Audio no entrega audio.
+
+Desinstalar: borra `~/Library/Application Support/obs-studio/plugins/obs-soundgrid-input.plugin`.
+
+Compilar el instalador (requiere Xcode Command Line Tools, CMake 3.28+ y OBS instalado en `/Applications`):
+
+```bash
+tools/make-obs-sdk.sh
+```
+
+```bash
+cmake -S . -B build-macos -DCMAKE_BUILD_TYPE=Release -DSG_OBS_SDK_DIR=$PWD/.deps/obs-sdk
+```
+
+```bash
+cmake --build build-macos -j8 && ctest --test-dir build-macos
+```
+
+```bash
+packaging/macos/package.sh build-macos
+```
+
+El `.pkg` y el `.zip` quedan en `dist/`.
 
 ## Dónde están los registros
 
 - Log de OBS: **Ayuda > Archivos de registro**. Las líneas del plugin empiezan por `[soundgrid]`.
-- Alertas: `%APPDATA%\obs-studio\plugin_config\obs-soundgrid-input\alerts.jsonl`.
+- Alertas: `%APPDATA%\obs-studio\plugin_config\obs-soundgrid-input\alerts.jsonl` (macOS: `~/Library/Application Support/obs-studio/plugin_config/obs-soundgrid-input/alerts.jsonl`).
 - Diagnóstico: botón **Exportar diagnóstico** del panel. No contienen IP ni MAC.
 
 Si algo no funciona, consulta [TROUBLESHOOTING.md](TROUBLESHOOTING.md).

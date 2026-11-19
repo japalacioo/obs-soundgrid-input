@@ -7,13 +7,21 @@ set(_sg_have_obs FALSE)
 if(SG_OBS_SDK_DIR AND EXISTS "${SG_OBS_SDK_DIR}/include/libobs/obs-module.h")
   add_library(sg_libobs INTERFACE)
   target_include_directories(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/include/libobs")
+  if(EXISTS "${SG_OBS_SDK_DIR}/include/simde")
+    target_include_directories(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/include")
+  endif()
   if(WIN32)
     target_link_libraries(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/lib/obs.lib")
+  elseif(APPLE)
+    # Stubs .tbd generados por tools/make-obs-sdk.sh (universales aunque OBS.app no lo sea).
+    target_link_libraries(sg_libobs INTERFACE "${SG_OBS_SDK_DIR}/lib/libobs.tbd")
   endif()
   add_library(sg_frontend INTERFACE)
   target_include_directories(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/include/frontend-api")
   if(WIN32 AND EXISTS "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.lib")
     target_link_libraries(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.lib")
+  elseif(APPLE AND EXISTS "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.tbd")
+    target_link_libraries(sg_frontend INTERFACE "${SG_OBS_SDK_DIR}/lib/obs-frontend-api.tbd")
   endif()
   set(_sg_obs_target sg_libobs)
   set(_sg_fe_target sg_frontend)
@@ -62,12 +70,24 @@ if(MSVC)
   target_sources(obs-soundgrid-input PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 endif()
 if(APPLE)
-  set_target_properties(obs-soundgrid-input PROPERTIES BUNDLE TRUE BUNDLE_EXTENSION plugin)
+  set_target_properties(obs-soundgrid-input PROPERTIES
+    BUNDLE TRUE BUNDLE_EXTENSION plugin
+    MACOSX_BUNDLE_GUI_IDENTIFIER com.obs-soundgrid-input.plugin
+    MACOSX_BUNDLE_BUNDLE_NAME obs-soundgrid-input
+    MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
+    MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_LONG_VERSION_STRING ${PROJECT_VERSION}
+    MACOSX_BUNDLE_COPYRIGHT "Copyright (C) 2026 ${SG_PLUGIN_AUTHOR}. GPLv3"
+    INSTALL_RPATH "@executable_path/../Frameworks")
+  # En un bundle .plugin, OBS busca los datos (locale/) en Contents/Resources.
+  add_custom_command(TARGET obs-soundgrid-input POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data
+            $<TARGET_BUNDLE_CONTENT_DIR:obs-soundgrid-input>/Resources)
+else()
+  # Copia de datos (locales) junto al binario para pruebas y empaquetado.
+  add_custom_command(TARGET obs-soundgrid-input POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:obs-soundgrid-input>/data)
 endif()
-
-# Copia de datos (locales) junto al binario para pruebas y empaquetado.
-add_custom_command(TARGET obs-soundgrid-input POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:obs-soundgrid-input>/data)
 
 # Host de integración: carga libobs real (obs.dll) sin interfaz y verifica la fuente.
 if(SG_BUILD_TESTS AND WIN32)
@@ -86,5 +106,27 @@ if(SG_BUILD_TESTS AND WIN32)
     add_test(NAME OBS_Host_Integration COMMAND sg_obs_host_test WORKING_DIRECTORY "${SG_OBS_BIN_DIR}")
     set_tests_properties(OBS_Host_Integration PROPERTIES LABELS "obs" TIMEOUT 120
       ENVIRONMENT "PATH=${SG_OBS_BIN_DIR}" PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
+  endif()
+endif()
+
+# macOS: el mismo host contra libobs.framework de OBS.app. Solo la arquitectura de OBS.app
+# (libobs no es universal); el plugin a probar puede cambiarse con SG_PLUGIN_BUNDLE=<.plugin>.
+if(SG_BUILD_TESTS AND APPLE)
+  set(SG_OBS_APP "/Applications/OBS.app" CACHE PATH "OBS.app para la prueba de integración")
+  set(_sg_libobs_bin "${SG_OBS_APP}/Contents/Frameworks/libobs.framework/libobs")
+  if(EXISTS "${_sg_libobs_bin}")
+    execute_process(COMMAND lipo -archs "${_sg_libobs_bin}" OUTPUT_VARIABLE _sg_obs_archs OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(REPLACE " " ";" _sg_obs_archs "${_sg_obs_archs}")
+    add_executable(sg_obs_host_test ${CMAKE_SOURCE_DIR}/tests/integration/obs_host_test.cpp)
+    target_link_libraries(sg_obs_host_test PRIVATE sg_core ${_sg_obs_target})
+    set_target_properties(sg_obs_host_test PROPERTIES OSX_ARCHITECTURES "${_sg_obs_archs}"
+      BUILD_RPATH "${SG_OBS_APP}/Contents/Frameworks")
+    target_compile_definitions(sg_obs_host_test PRIVATE
+      SG_PLUGIN_PATH="$<TARGET_FILE:obs-soundgrid-input>"
+      SG_PLUGIN_DATA="$<TARGET_BUNDLE_CONTENT_DIR:obs-soundgrid-input>/Resources")
+    add_dependencies(sg_obs_host_test obs-soundgrid-input)
+    add_test(NAME OBS_Host_Integration COMMAND sg_obs_host_test)
+    set_tests_properties(OBS_Host_Integration PROPERTIES LABELS "obs" TIMEOUT 120
+      PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
   endif()
 endif()

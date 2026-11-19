@@ -25,7 +25,7 @@ Guía completa, con verificación del archivo, actualización, desinstalación e
 | Red | Tarjeta de red Gigabit conectada a la red SoundGrid de la consola |
 | Consola | eMotion LV1 Classic V17 con el driver del PC asignado en Setup > Inventory |
 
-El plugin **requiere el driver de Waves**: no habla el protocolo SoundGrid por sí mismo (es propietario y no tiene SDK público). macOS: el código existe, pero **no está compilado ni probado** y no hay instalador.
+El plugin **requiere el driver de Waves**: no habla el protocolo SoundGrid por sí mismo (es propietario y no tiene SDK público). macOS (experimental): hay instalador `.pkg` universal que carga en OBS 33, pero **no se ha probado con hardware Waves** y no tiene barra roja; ver [docs/INSTALL.md](docs/INSTALL.md#macos).
 
 ## Qué hace
 
