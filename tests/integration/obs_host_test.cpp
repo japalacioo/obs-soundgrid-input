@@ -117,8 +117,17 @@ int main()
         AddDllDirectory(dir.c_str());
     }
 #endif
+    std::string pluginPath = SG_PLUGIN_PATH, pluginData = SG_PLUGIN_DATA;
+#if defined(__APPLE__)
+    // Probar un bundle ya instalado: SG_PLUGIN_BUNDLE=~/Library/.../obs-soundgrid-input.plugin
+    if (const char *b = std::getenv("SG_PLUGIN_BUNDLE"); b && *b) {
+        pluginPath = std::string(b) + "/Contents/MacOS/obs-soundgrid-input";
+        pluginData = std::string(b) + "/Contents/Resources";
+    }
+#endif
+    std::printf("plugin: %s\n", pluginPath.c_str());
     obs_module_t *mod = nullptr;
-    const int r = obs_open_module(&mod, SG_PLUGIN_PATH, SG_PLUGIN_DATA);
+    const int r = obs_open_module(&mod, pluginPath.c_str(), pluginData.c_str());
     CHECK(r == MODULE_SUCCESS, "T01", "obs_open_module carga obs-soundgrid-input");
     if (r != MODULE_SUCCESS) {
         obs_shutdown();
