@@ -143,6 +143,22 @@ OBS 33.0.1 con la colección del operador, que ya no tenía ninguna fuente Sound
 | Dos clientes ASIO a la vez | El driver Waves aceptó la sonda `sg_asio_probe` mientras OBS lo tenía abierto (−17 dBFS en 1–2) |
 | Pausa con una fuente visible | NOT_RUN en OBS (no se volvió a añadir la fuente que el operador había quitado) |
 
+## Monitor de audio en el Multiview (macOS, OBS 33.0.2)
+
+Fecha: 2026-11-20 · macOS 26.6 en Apple Silicon · OBS 33.0.2 (Homebrew) · dispositivo simulado (sin hardware Waves).
+
+| Prueba | Resultado |
+|---|---|
+| `test_audio_monitor.cpp`: 35 pruebas unitarias (escala, zonas, historial, Peak/RMS de un seno, balística de OBS, clip, forma de onda de derecha a izquierda, huecos sin audio, distribución en 5 lienzos, selección por escena y plan del Multiview) | PASS |
+| `obs_monitor_render_test.cpp` (MON01–MON10): render real por GPU (libobs-opengl) y comprobación por píxeles. Colores verde/amarillo/rojo del medidor, onda a −20 dBFS, clip encendido con señal saturada, cabecera roja sin señal, textos y cambio de fuente. Sin asignaciones de libobs pendientes tras `obs_shutdown` | PASS |
+| OBS real con 7 escenas (una fuente SoundGrid simulada en cada una), el monitor en la 8.ª y el Multiview abierto. El Multiview crea la etiqueta de la escena del monitor y el monitor dibuja 1280×720 | PASS |
+| El monitor sigue la escena de programa (Escena 3 → Escena 2) y, en modo estudio, la transición (→ Escena 4). Con «vista previa» sigue la vista previa (Escena 6) | PASS |
+| Protección: al poner la escena del monitor en programa vuelve a «Escena 2»; en vista previa (modo estudio) vuelve a «Escena 4» | PASS |
+| Cierre de OBS: «Number of memory leaks: 0» (antes 5, por los ajustes globales del plugin que no se liberaban; corregido) | PASS |
+| Windows | Sin probar |
+
+Los cambios de escena se hicieron por obs-websocket, activado solo en una configuración temporal de OBS que se borró después. Un clic en el Multiview usa la misma ruta del frontend (`SetCurrentScene`), pero no se probó con el ratón.
+
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).
 

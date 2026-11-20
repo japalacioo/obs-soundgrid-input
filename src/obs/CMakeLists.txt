@@ -51,6 +51,7 @@ add_library(obs-soundgrid-input MODULE
   WavesWatchdog.h WavesWatchdog.cpp
   PluginSettings.h PluginSettings.cpp
   GlobalMonitor.h GlobalMonitor.cpp
+  AudioMonitorSource.h AudioMonitorSource.cpp
 )
 if(WIN32)
   target_sources(obs-soundgrid-input PRIVATE AlertBannerWin.cpp)
@@ -107,6 +108,25 @@ if(SG_BUILD_TESTS AND WIN32)
     set_tests_properties(OBS_Host_Integration PROPERTIES LABELS "obs" TIMEOUT 120
       ENVIRONMENT "PATH=${SG_OBS_BIN_DIR}" PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
   endif()
+  # Monitor de audio del Multiview con render real (Direct3D 11). Sin validar todavía en Windows.
+  add_executable(sg_obs_monitor_test ${CMAKE_SOURCE_DIR}/tests/integration/obs_monitor_render_test.cpp)
+  target_link_libraries(sg_obs_monitor_test PRIVATE sg_core ${_sg_obs_target})
+  target_compile_definitions(sg_obs_monitor_test PRIVATE
+    SG_PLUGIN_PATH="$<TARGET_FILE:obs-soundgrid-input>"
+    SG_PLUGIN_DATA="$<TARGET_FILE_DIR:obs-soundgrid-input>/data"
+    SG_GRAPHICS_MODULE="libobs-d3d11"
+    SG_TEXT_MODULE_BIN="${SG_OBS_BIN_DIR}/../../obs-plugins/64bit/obs-text.dll"
+    SG_TEXT_MODULE_DATA="${SG_OBS_BIN_DIR}/../../data/obs-plugins/obs-text"
+    SG_SNAPSHOT_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+  if(MSVC)
+    target_compile_options(sg_obs_monitor_test PRIVATE /wd4244 /wd4267 /wd4100 /wd4201)
+  endif()
+  add_dependencies(sg_obs_monitor_test obs-soundgrid-input)
+  if(EXISTS "${SG_OBS_BIN_DIR}/obs.dll")
+    add_test(NAME OBS_Monitor_Render COMMAND sg_obs_monitor_test WORKING_DIRECTORY "${SG_OBS_BIN_DIR}")
+    set_tests_properties(OBS_Monitor_Render PROPERTIES LABELS "obs" TIMEOUT 120
+      ENVIRONMENT "PATH=${SG_OBS_BIN_DIR}" PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
+  endif()
 endif()
 
 # macOS: el mismo host contra libobs.framework de OBS.app. Solo la arquitectura de OBS.app
@@ -127,6 +147,22 @@ if(SG_BUILD_TESTS AND APPLE)
     add_dependencies(sg_obs_host_test obs-soundgrid-input)
     add_test(NAME OBS_Host_Integration COMMAND sg_obs_host_test)
     set_tests_properties(OBS_Host_Integration PROPERTIES LABELS "obs" TIMEOUT 120
+      PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
+    # Monitor de audio del Multiview: render real por GPU (libobs-opengl) y comprobación por píxeles.
+    add_executable(sg_obs_monitor_test ${CMAKE_SOURCE_DIR}/tests/integration/obs_monitor_render_test.cpp)
+    target_link_libraries(sg_obs_monitor_test PRIVATE sg_core ${_sg_obs_target})
+    set_target_properties(sg_obs_monitor_test PROPERTIES OSX_ARCHITECTURES "${_sg_obs_archs}"
+      BUILD_RPATH "${SG_OBS_APP}/Contents/Frameworks")
+    target_compile_definitions(sg_obs_monitor_test PRIVATE
+      SG_PLUGIN_PATH="$<TARGET_FILE:obs-soundgrid-input>"
+      SG_PLUGIN_DATA="$<TARGET_BUNDLE_CONTENT_DIR:obs-soundgrid-input>/Resources"
+      SG_GRAPHICS_MODULE="${SG_OBS_APP}/Contents/Frameworks/libobs-opengl.dylib"
+      SG_TEXT_MODULE_BIN="${SG_OBS_APP}/Contents/PlugIns/text-freetype2.plugin/Contents/MacOS/text-freetype2"
+      SG_TEXT_MODULE_DATA="${SG_OBS_APP}/Contents/PlugIns/text-freetype2.plugin/Contents/Resources"
+      SG_SNAPSHOT_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+    add_dependencies(sg_obs_monitor_test obs-soundgrid-input)
+    add_test(NAME OBS_Monitor_Render COMMAND sg_obs_monitor_test)
+    set_tests_properties(OBS_Monitor_Render PROPERTIES LABELS "obs" TIMEOUT 120
       PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
   endif()
 endif()

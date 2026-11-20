@@ -13,6 +13,12 @@
 #include <memory>
 #include <mutex>
 
+#if !defined(_WIN32)
+#include <chrono>
+#include <condition_variable>
+#include <thread>
+#endif
+
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -34,6 +40,48 @@ bool g_started = false; // entre FINISHED_LOADING y EXIT
 int64_t g_lastAttemptNs = 0;
 std::string g_lastProblem;
 bool g_paused = false; // una fuente visible ya vigila el driver
+
+#if !defined(_WIN32)
+// En Windows, el temporizador de la barra roja (AlertBannerWin) llama a maintainGlobalMonitor()
+// cada ~5 s. En macOS y Linux no hay barra: sin este hilo, la vigilancia global solo se evaluaría
+// al arrancar (no reintentaría si el driver aparece después, ni se pausaría o reanudaría al añadir
+// o quitar una fuente SoundGrid). Las llamadas quedan serializadas por g_mu.
+constexpr auto kMaintainPeriod = std::chrono::seconds(5);
+std::thread g_maintThread;
+std::mutex g_maintMu;
+std::condition_variable g_maintCv;
+bool g_maintStop = false;
+
+void startMaintenanceThread()
+{
+    if (g_maintThread.joinable())
+        return;
+    {
+        std::lock_guard lk(g_maintMu);
+        g_maintStop = false;
+    }
+    g_maintThread = std::thread([] {
+        std::unique_lock lk(g_maintMu);
+        while (!g_maintCv.wait_for(lk, kMaintainPeriod, [] { return g_maintStop; })) {
+            lk.unlock();
+            maintainGlobalMonitor();
+            lk.lock();
+        }
+    });
+}
+
+// Debe llamarse sin g_mu: el hilo puede estar dentro de maintainGlobalMonitor().
+void stopMaintenanceThread()
+{
+    {
+        std::lock_guard lk(g_maintMu);
+        g_maintStop = true;
+    }
+    g_maintCv.notify_all();
+    if (g_maintThread.joinable())
+        g_maintThread.join();
+}
+#endif
 
 // Primer driver Waves SoundGrid (no simulador) y la NIC elegida en el Control Panel de Waves.
 std::optional<SourceConfig> detectConfig(CoreRuntime &rt)
@@ -110,10 +158,16 @@ void startGlobalMonitor()
         g_lastAttemptNs = 0;
     }
     maintainGlobalMonitor();
+#if !defined(_WIN32)
+    startMaintenanceThread();
+#endif
 }
 
 void stopGlobalMonitor()
 {
+#if !defined(_WIN32)
+    stopMaintenanceThread(); // antes de tomar g_mu
+#endif
     std::lock_guard lk(g_mu);
     g_started = false;
     stopLocked(pluginRuntime());

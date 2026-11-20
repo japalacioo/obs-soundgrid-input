@@ -53,7 +53,8 @@ No hay ruta B (SoundGrid nativo): está `BLOQUEADO POR PROTOCOLO` ([NATIVE_FEASI
 | Plataforma | `src/platform` | `AsioTransport` y `WindowsNicTelemetry` (Windows); `CoreAudioTransport` y `MacNicTelemetry` (macOS) |
 | Observabilidad | `src/observability` | `HealthSnapshot`, `AlertEngine`, `AlertDispatcher`, `JsonlAlertLog`, `AlertHistory` |
 | Sesión | `src/core` | `SourceSession` (una por fuente OBS), `HealthMonitor`, `CoreRuntime` |
-| OBS | `src/obs` | Registro del módulo, fuente `soundgrid_input`, propiedades, diagnóstico. Única capa que incluye libobs |
+| Monitor del Multiview | `src/monitor` | `AudioScopeTap` (historial de 5 ms por cubo), niveles, balística de OBS, columnas de la onda, distribución, selección de fuente por escena y plan del Multiview (ADR-016) |
+| OBS | `src/obs` | Registro del módulo, fuente `soundgrid_input`, propiedades, diagnóstico, fuente de vídeo `soundgrid_audio_monitor` (monitor del Multiview). Única capa que incluye libobs |
 
 ## 3. Interfaces y contratos
 
@@ -75,6 +76,8 @@ No hay ruta B (SoundGrid nativo): está `BLOQUEADO POR PROTOCOLO` ([NATIVE_FEASI
 | Hilo de salida (uno por fuente) | `obs_source_output_audio` y medir la latencia callback→entrega | Llamar al driver |
 | Control (`TransportManager`, 50 ms) | Abrir y cerrar, eventos del driver, reconexión con backoff, detección de bloqueo. Usa su propio candado de operaciones (`opMu_`) | Tocar la consola; retener el candado de estado mientras llama al driver |
 | Monitor (250 ms) | Instantáneas, reglas A01–A10, NIC con caché | Bloquear el callback |
+| Mantenimiento de la vigilancia global (5 s) | `maintainGlobalMonitor()`: reintentar, pausar o reanudar la sesión global. En Windows lo hace el temporizador de la barra roja (hilo de UI); en macOS y Linux, un hilo propio | Tomar `g_mu` desde `stopGlobalMonitor()` antes de unir el hilo |
+| Gráficos de OBS (monitor del Multiview) | `video_tick`: copia del historial, niveles y textos; `video_render`: medidores, onda y textos | Tocar el driver; esperar al hilo de salida más que el candado corto de `AudioScopeTap` |
 | Despachador de alertas | JSONL rotativo, log de OBS, historial | Crecer sin límite (cola de 1024 y descartes contados) |
 | UI de OBS | Propiedades y acciones | Leer PCM |
 

@@ -9,5 +9,7 @@ constexpr const char *kGlobalSilence = "global_monitor_silence"; // incluir sile
 
 bool getBool(const char *key, bool def);
 void setBool(const char *key, bool value); // persiste al instante
+// Libera los ajustes en memoria (al descargar el módulo; se recargan del disco si se vuelven a pedir).
+void release();
 
 } // namespace sg::settings
