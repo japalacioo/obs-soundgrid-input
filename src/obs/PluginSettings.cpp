@@ -38,6 +38,13 @@ void save()
 
 } // namespace
 
+void release()
+{
+    std::lock_guard lk(g_mu);
+    obs_data_release(g_data);
+    g_data = nullptr;
+}
+
 bool getBool(const char *key, bool def)
 {
     std::lock_guard lk(g_mu);

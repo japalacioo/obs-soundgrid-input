@@ -1,5 +1,15 @@
 # Notas de versión
 
+## Sin publicar
+
+### Nuevo
+- **Monitor de audio en el Multiview** ([docs/AUDIO_MONITOR.md](AUDIO_MONITOR.md), ADR-016): una escena que se coloca en el recuadro inferior derecho del Multiview y muestra el audio de la fuente SoundGrid de la escena al aire. Incluye medidores L/R verde, amarillo y rojo con escala en dBFS y peak hold, un osciloscopio que avanza de derecha a izquierda, Peak y RMS en dBFS, un indicador de clip y el nombre de la fuente. Se crea desde **Herramientas > SoundGrid: monitor de audio en el Multiview**. Si la escena del monitor llega a programa o vista previa, el plugin vuelve a la escena anterior.
+- Pruebas: 35 unitarias (`test_audio_monitor.cpp`) y una de render real por GPU con libobs (`obs_monitor_render_test.cpp`, MON01–MON10). Probado en macOS 26 con OBS 33.0.2: el Multiview dibuja el monitor y sigue la escena al aire. Sin probar en Windows.
+
+### Corregido
+- Los ajustes globales del plugin (`settings.json`) no se liberaban al cerrar OBS (5 fugas de memoria en el log de cierre de OBS).
+- **macOS y Linux: la vigilancia global se evaluaba una sola vez, al arrancar OBS.** En Windows la reevalúa cada ~5 s el temporizador de la barra roja, que en macOS no existe. Ahora un hilo propio la reevalúa cada 5 s: reintenta si el driver Waves aparece con OBS abierto y se pausa o reanuda al añadir o quitar una fuente SoundGrid visible. Compilado y cargado en OBS 33.0.2 en macOS (sin driver Waves instalado); sin probar con hardware Waves.
+
 ## 0.3.0 (17 de noviembre de 2026): avisos y Control Panel sin necesidad de fuentes
 
 **Autor:** Joan Palacio.

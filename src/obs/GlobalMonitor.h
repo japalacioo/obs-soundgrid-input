@@ -3,7 +3,9 @@
 // Es una sesión interna del plugin (no una fuente de OBS: no entrega audio a OBS) sobre el primer
 // driver Waves SoundGrid, entradas 1–2, y la tarjeta de red de su Control Panel. Comparte el stream
 // del driver con las fuentes SoundGrid (no lo abre dos veces). Sus alertas alimentan la barra roja.
-// Todas las funciones se llaman desde el hilo de interfaz de OBS salvo las de estado (seguras).
+// Las llamadas que cambian la sesión están serializadas por un candado interno. En Windows,
+// maintainGlobalMonitor() la llama el temporizador de la barra roja (hilo de interfaz); en macOS y
+// Linux, un hilo propio cada 5 s entre startGlobalMonitor() y stopGlobalMonitor().
 #include "observability/AudioLossBanner.h"
 
 #include <optional>

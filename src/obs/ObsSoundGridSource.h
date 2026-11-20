@@ -10,6 +10,10 @@
 
 namespace sg {
 
+namespace monitor {
+class AudioScopeTap;
+}
+
 constexpr const char *kSourceId = "soundgrid_input";
 
 // Servicios compartidos del plugin (creados en obs_module_load).
@@ -26,5 +30,7 @@ std::vector<BannerSourceInput> collectBannerInputs();
 bool visibleWavesSourceExists();
 // Abre las propiedades de la fuente con ese nombre (o la primera SoundGrid si no existe).
 void openSourcePropertiesByName(const std::string &name);
+// Historial de audio de una fuente SoundGrid viva (nullptr si no lo es). Para el monitor del Multiview.
+std::shared_ptr<monitor::AudioScopeTap> soundGridScopeTap(obs_source_t *source);
 
 } // namespace sg
