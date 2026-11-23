@@ -108,15 +108,24 @@ if(SG_BUILD_TESTS AND WIN32)
     set_tests_properties(OBS_Host_Integration PROPERTIES LABELS "obs" TIMEOUT 120
       ENVIRONMENT "PATH=${SG_OBS_BIN_DIR}" PASS_REGULAR_EXPRESSION "RESULTADO: PASS")
   endif()
-  # Monitor de audio del Multiview con render real (Direct3D 11). Sin validar todavía en Windows.
+  # Monitor de audio del Multiview con render real (Direct3D 11).
+  # obs-text: OBS 33+ lo instala en core/obs-text; versiones anteriores, en obs-plugins/64bit.
+  get_filename_component(_sg_obs_root "${SG_OBS_BIN_DIR}/../.." ABSOLUTE)
+  if(EXISTS "${_sg_obs_root}/core/obs-text/obs-text.dll")
+    set(_sg_text_bin "${_sg_obs_root}/core/obs-text/obs-text.dll")
+    set(_sg_text_data "${_sg_obs_root}/core/obs-text/data")
+  else()
+    set(_sg_text_bin "${_sg_obs_root}/obs-plugins/64bit/obs-text.dll")
+    set(_sg_text_data "${_sg_obs_root}/data/obs-plugins/obs-text")
+  endif()
   add_executable(sg_obs_monitor_test ${CMAKE_SOURCE_DIR}/tests/integration/obs_monitor_render_test.cpp)
   target_link_libraries(sg_obs_monitor_test PRIVATE sg_core ${_sg_obs_target})
   target_compile_definitions(sg_obs_monitor_test PRIVATE
     SG_PLUGIN_PATH="$<TARGET_FILE:obs-soundgrid-input>"
     SG_PLUGIN_DATA="$<TARGET_FILE_DIR:obs-soundgrid-input>/data"
     SG_GRAPHICS_MODULE="libobs-d3d11"
-    SG_TEXT_MODULE_BIN="${SG_OBS_BIN_DIR}/../../obs-plugins/64bit/obs-text.dll"
-    SG_TEXT_MODULE_DATA="${SG_OBS_BIN_DIR}/../../data/obs-plugins/obs-text"
+    SG_TEXT_MODULE_BIN="${_sg_text_bin}"
+    SG_TEXT_MODULE_DATA="${_sg_text_data}"
     SG_SNAPSHOT_DIR="${CMAKE_CURRENT_BINARY_DIR}")
   if(MSVC)
     target_compile_options(sg_obs_monitor_test PRIVATE /wd4244 /wd4267 /wd4100 /wd4201)

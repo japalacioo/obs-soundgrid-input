@@ -92,6 +92,7 @@ Source: "{#RootDir}\README.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#RootDir}\docs\INSTALL.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#RootDir}\docs\TROUBLESHOOTING.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#RootDir}\docs\ALERTS.md"; DestDir: "{app}\docs"; Flags: ignoreversion
+Source: "{#RootDir}\docs\AUDIO_MONITOR.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#RootDir}\docs\LIMITATIONS.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 Source: "{#RootDir}\docs\RELEASE_NOTES.md"; DestDir: "{app}\docs"; Flags: ignoreversion
 

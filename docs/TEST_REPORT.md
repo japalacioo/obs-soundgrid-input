@@ -1,4 +1,4 @@
-# Informe de pruebas, v0.3.0
+# Informe de pruebas, v0.4.0
 
 **Fecha:** 17 de noviembre de 2026 · **Equipo:** i7-1255U, Windows 11 build 26300, OBS 33.0.1, MSVC 19.44, CMake 4.4.3.
 **Hardware Waves:** NINGUNO. No hubo eMotion LV1, SoundGrid Driver V17, switch ni red SoundGrid.
@@ -29,7 +29,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 | Suite | Resultado |
 |---|---|
-| CTest Release completo (unit, platform, obs, soak) | **106/106 PASS** |
+| CTest Release completo (unit, platform, obs, soak) | **142/142 PASS** en v0.4.0 (23 nov; 106/106 en v0.3.0) |
 | Unitarias (`sg_unit_tests`) | 100/100 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md), 11 del aviso de audio perdido y 7 de la reapertura de Waves) |
 | Plataforma, hardware real (`sg_platform_tests`) | 4/4 PASS (incluye localizar las aplicaciones de Waves) |
 | Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 21/21 comprobaciones PASS (incluye autor, créditos y el panel simplificado) · `bnum_allocs` = 0 al cerrar |
@@ -155,9 +155,24 @@ Fecha: 2026-11-20 · macOS 26.6 en Apple Silicon · OBS 33.0.2 (Homebrew) · dis
 | El monitor sigue la escena de programa (Escena 3 → Escena 2) y, en modo estudio, la transición (→ Escena 4). Con «vista previa» sigue la vista previa (Escena 6) | PASS |
 | Protección: al poner la escena del monitor en programa vuelve a «Escena 2»; en vista previa (modo estudio) vuelve a «Escena 4» | PASS |
 | Cierre de OBS: «Number of memory leaks: 0» (antes 5, por los ajustes globales del plugin que no se liberaban; corregido) | PASS |
-| Windows | Sin probar |
+| Windows | Ver la sección siguiente |
 
 Los cambios de escena se hicieron por obs-websocket, activado solo en una configuración temporal de OBS que se borró después. Un clic en el Multiview usa la misma ruta del frontend (`SetCurrentScene`), pero no se probó con el ratón.
+
+## Monitor de audio en el Multiview (Windows, OBS 33.0.1), v0.4.0
+
+Fecha: 2026-11-23 · Windows 11 build 26300 · OBS 33.0.1 instalado con `obs-soundgrid-input-0.4.0-windows-x64-setup.exe` · Direct3D 11. La LV1 no estaba conectada: el driver Waves entregaba silencio.
+
+| Prueba | Resultado |
+|---|---|
+| CTest Release completo | **142/142 PASS** (135 unitarias, 4 de plataforma, 2 de libobs real, 1 de resistencia), sin avisos de compilación en las pruebas del monitor |
+| `obs_monitor_render_test.cpp` (MON01–MON10) con libobs-d3d11 y `obs-text` de `core/obs-text` | PASS: 27 comprobaciones, incluidas MON07 (textos) y MON08 (clip). La señal la da el simulador del plugin |
+| Escena del monitor creada sola al abrir OBS (colección sin ella) | PASS: «escena 'Monitor de audio SoundGrid' creada con el monitor de audio» y el plan del Multiview en el log, sin ventanas |
+| Colección que ya tiene la escena del monitor | PASS: no se crea otra |
+| Escena del director con la fuente del monitor dentro («Escena») en programa | PASS: sigue al aire, sin reversión (antes de 0.4.0 se habría tratado como escena del monitor) |
+| Clic con el ratón y flecha del teclado sobre la escena del monitor en la lista (modo estudio) | PASS: «no puede ir a vista previa: se vuelve a 'Escena'» en las dos |
+| Multiview (Horizontal, arriba, 8 escenas) | PASS: el recuadro «Monitor de audio SoundGrid» muestra «SoundGrid LV1 · Escena» con cabecera gris; sin fuente SoundGrid en la escena al aire, cabecera roja «Sin fuente SoundGrid en «Escena»» |
+| Medidores y forma de onda con audio real de la LV1 | NOT_RUN (consola no conectada) |
 
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).

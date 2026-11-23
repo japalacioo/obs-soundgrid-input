@@ -25,7 +25,7 @@ El instalador de este plugin **no incluye** el driver de Waves ni modifica OBS.
 En PowerShell, en la carpeta de descargas:
 
 ```bash
-powershell -Command "(Get-FileHash .\obs-soundgrid-input-0.3.0-windows-x64-setup.exe -Algorithm SHA256).Hash"
+powershell -Command "(Get-FileHash .\obs-soundgrid-input-0.4.0-windows-x64-setup.exe -Algorithm SHA256).Hash"
 ```
 
 El resultado debe coincidir (sin distinguir mayúsculas) con el texto del archivo `.sha256` y con el que aparece en la página de la versión.
@@ -72,6 +72,16 @@ Su estado está en **Herramientas > SoundGrid Monitor**:
 
 Cuando hay una fuente visible con el driver Waves, la vigilancia global se pausa para no avisar dos veces.
 
+### Monitor de audio en el Multiview
+
+Al abrir OBS, el plugin crea la escena **«Monitor de audio SoundGrid»** si no existe. Abre el Multiview (**Vista > Abrir vista múltiple**) y el monitor aparece en un recuadro de escena, con los medidores L/R, la forma de onda y el nombre de la fuente SoundGrid de la escena al aire. No hay que crear ni configurar nada.
+
+- Para que quede en el último recuadro (abajo a la derecha), arrastra la escena al final de la lista; con menos escenas que recuadros queda en el primer recuadro libre.
+- Esa escena nunca sale al aire: si alguien la pulsa, el plugin vuelve a la escena anterior. Las escenas del director que contengan el monitor no se tocan.
+- Para que no se cree, desactiva **Crear esta escena al abrir OBS** en las propiedades de la fuente del monitor y borra la escena.
+
+Detalle en [AUDIO_MONITOR.md](AUDIO_MONITOR.md).
+
 ### Qué significa cada color de la barra
 
 | Color | Mensaje | Qué hacer |
@@ -95,7 +105,7 @@ Se conservan tus escenas y la carpeta de configuración del plugin: `%APPDATA%\o
 ## 8. Instalación desatendida (varios equipos)
 
 ```bash
-obs-soundgrid-input-0.3.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+obs-soundgrid-input-0.4.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
 Devuelve 0 si se instaló. Si OBS está abierto, no instala y devuelve un código distinto de 0. Necesita una consola con permisos de administrador.

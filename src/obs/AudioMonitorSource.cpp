@@ -7,6 +7,7 @@
 #include "AudioMonitorSource.h"
 
 #include "ObsSoundGridSource.h"
+#include "PluginSettings.h"
 #include "monitor/AudioScope.h"
 #include "monitor/SceneAudioPicker.h"
 
@@ -48,6 +49,7 @@ constexpr const char *kMonitorFlag = "sg_audio_monitor_scene"; // ajuste privado
 constexpr const char *kFollow = "follow";
 constexpr const char *kFixed = "fixed_source";
 constexpr const char *kWindow = "window_s";
+constexpr const char *kAutoScene = "global.auto_scene"; // ajuste de todo OBS, mostrado en el monitor
 enum Follow { FollowProgram = 0, FollowPreview = 1, FollowFixed = 2 };
 
 // Colores 0xAARRGGBB. Medidor: valores por defecto de VolumeMeter de OBS. Marco: Multiview de OBS.
@@ -110,17 +112,29 @@ bool sceneHasMonitorItem(obs_scene_t *scene)
     return found;
 }
 
+// Solo la escena que creó el plugin (marcada con kMonitorFlag) es "la escena del monitor". Una escena
+// del director que contenga el monitor NO lo es: si lo fuera, el plugin la sacaría del aire.
 bool isMonitorScene(obs_source_t *sceneSrc)
 {
-    if (!sceneSrc)
-        return false;
-    obs_scene_t *scene = obs_scene_from_source(sceneSrc);
-    if (!scene)
+    if (!sceneSrc || !obs_scene_from_source(sceneSrc))
         return false;
     obs_data_t *ps = obs_source_get_private_settings(sceneSrc);
     const bool flagged = obs_data_get_bool(ps, kMonitorFlag);
     obs_data_release(ps);
-    return flagged || sceneHasMonitorItem(scene);
+    return flagged;
+}
+
+// Escena del monitor de la colección actual (referencia nueva) o nullptr.
+obs_source_t *findMonitorScene()
+{
+    obs_source_t *found = nullptr;
+    obs_frontend_source_list list = {};
+    obs_frontend_get_scenes(&list);
+    for (size_t i = 0; i < list.sources.num && !found; ++i)
+        if (isMonitorScene(list.sources.array[i]))
+            found = obs_source_get_ref(list.sources.array[i]);
+    obs_frontend_source_list_free(&list);
+    return found;
 }
 
 struct RevertTask {
@@ -756,6 +770,7 @@ const char *getName(void *)
 
 void *create(obs_data_t *settings, obs_source_t *)
 {
+    obs_data_erase(settings, kAutoScene); // ajuste global: su valor vive en settings.json, no en la fuente
     return new AudioMonitor(settings);
 }
 
@@ -774,6 +789,7 @@ void defaults(obs_data_t *s)
     obs_data_set_default_int(s, kFollow, FollowProgram);
     obs_data_set_default_string(s, kFixed, "");
     obs_data_set_default_int(s, kWindow, 5);
+    obs_data_set_default_bool(s, kAutoScene, settings::getBool(settings::kAudioMonitorScene, true));
 }
 
 void tick(void *data, float)
@@ -808,6 +824,12 @@ bool onPlace(obs_properties_t *, obs_property_t *, void *)
     return false;
 }
 
+bool autoSceneChanged(obs_properties_t *, obs_property_t *, obs_data_t *s)
+{
+    settings::setBool(settings::kAudioMonitorScene, obs_data_get_bool(s, kAutoScene));
+    return false;
+}
+
 obs_properties_t *properties(void *)
 {
     obs_properties_t *props = obs_properties_create();
@@ -831,6 +853,9 @@ obs_properties_t *properties(void *)
         fx);
     obs_properties_add_int_slider(props, kWindow, T_("AudioMonitorWindow"), 1, 30, 1);
     obs_properties_add_button2(props, "place", T_("AudioMonitorPlace"), onPlace, nullptr);
+    obs_property_t *autoScene = obs_properties_add_bool(props, kAutoScene, T_("AudioMonitorAutoScene"));
+    obs_property_set_long_description(autoScene, T_("AudioMonitorAutoSceneHelp"));
+    obs_property_set_modified_callback(autoScene, autoSceneChanged);
     obs_property_t *info = obs_properties_add_text(props, "info", T_("AudioMonitorInfoTitle"), OBS_TEXT_INFO);
     obs_property_set_long_description(info, T_("AudioMonitorInfo"));
     return props;
@@ -885,28 +910,66 @@ void registerAudioMonitorSource()
     obs_register_source(&info);
 }
 
-void setupAudioMonitorScene()
-{
-    const std::string sceneName = T_("AudioMonitorSceneName");
-    obs_source_t *existing = obs_get_source_by_name(sceneName.c_str());
-    bool created = false;
-    if (!existing) {
-        obs_scene_t *scene = obs_scene_create(sceneName.c_str());
-        obs_source_t *sceneSrc = obs_scene_get_source(scene);
-        obs_data_t *ps = obs_source_get_private_settings(sceneSrc);
-        obs_data_set_bool(ps, kMonitorFlag, true);
-        obs_data_release(ps);
-        obs_source_t *mon = obs_source_create(kAudioMonitorSourceId, T_("AudioMonitor"), nullptr, nullptr);
-        if (obs_sceneitem_t *item = obs_scene_add(scene, mon))
-            obs_sceneitem_set_locked(item, true);
-        obs_source_release(mon);
-        obs_scene_release(scene); // la lista de escenas de OBS conserva su referencia
-        created = true;
-        blog(LOG_INFO, "[soundgrid] escena '%s' creada con el monitor de audio", sceneName.c_str());
-    } else {
-        obs_source_release(existing);
-    }
+namespace {
 
+void flagAsMonitorScene(obs_source_t *sceneSrc)
+{
+    obs_data_t *ps = obs_source_get_private_settings(sceneSrc);
+    obs_data_set_bool(ps, kMonitorFlag, true);
+    obs_data_release(ps);
+}
+
+void addMonitorItem(obs_scene_t *scene)
+{
+    obs_source_t *mon = obs_source_create(kAudioMonitorSourceId, T_("AudioMonitor"), nullptr, nullptr);
+    if (obs_sceneitem_t *item = obs_scene_add(scene, mon))
+        obs_sceneitem_set_locked(item, true);
+    obs_source_release(mon);
+}
+
+// Garantiza que la colección actual tenga la escena del monitor. Devuelve true si la creó (o adoptó).
+// sceneName recibe el nombre de la escena del monitor.
+bool ensureMonitorScene(std::string &sceneName)
+{
+    if (obs_source_t *mine = findMonitorScene()) {
+        sceneName = obs_source_get_name(mine);
+        obs_source_release(mine);
+        return false;
+    }
+    sceneName = T_("AudioMonitorSceneName");
+    // Una escena con ese nombre que contiene el monitor (p. ej. de una versión anterior): se adopta.
+    if (obs_source_t *same = obs_get_source_by_name(sceneName.c_str())) {
+        obs_scene_t *scene = obs_scene_from_source(same);
+        const bool adopt = scene && sceneHasMonitorItem(scene);
+        if (adopt)
+            flagAsMonitorScene(same);
+        obs_source_release(same);
+        if (adopt) {
+            blog(LOG_INFO, "[soundgrid] escena '%s' marcada como escena del monitor de audio", sceneName.c_str());
+            return true;
+        }
+        // El nombre lo usa otra cosa del director: no se toca, se busca un nombre libre.
+        for (int n = 2;; ++n) {
+            std::string candidate = sceneName + " (" + std::to_string(n) + ")";
+            obs_source_t *taken = obs_get_source_by_name(candidate.c_str());
+            if (!taken) {
+                sceneName = candidate;
+                break;
+            }
+            obs_source_release(taken);
+        }
+    }
+    obs_scene_t *scene = obs_scene_create(sceneName.c_str());
+    flagAsMonitorScene(obs_scene_get_source(scene));
+    addMonitorItem(scene);
+    obs_scene_release(scene); // la lista de escenas de OBS conserva su referencia
+    blog(LOG_INFO, "[soundgrid] escena '%s' creada con el monitor de audio", sceneName.c_str());
+    return true;
+}
+
+// Texto con la posición recomendada en la lista de escenas según el diseño de Multiview actual.
+std::string placementAdvice(const std::string &sceneName)
+{
     std::vector<SceneEntry> scenes;
     obs_frontend_source_list list = {};
     obs_frontend_get_scenes(&list);
@@ -924,9 +987,28 @@ void setupAudioMonitorScene()
 
     config_t *cfg = obs_frontend_get_user_config();
     const int layout = cfg ? static_cast<int>(config_get_int(cfg, "BasicWindow", "MultiviewLayout")) : 0;
-    const MultiviewPlan plan = planMonitorPlacement(scenes, layout);
+    return describePlan(planMonitorPlacement(scenes, layout), layout, sceneName);
+}
+
+// Al abrir OBS o cambiar de colección: crea la escena del monitor si falta (ajuste global, activo por
+// defecto), sin ventanas: el director no tiene que hacer nada para verlo en el Multiview.
+void autoCreateMonitorScene()
+{
+    if (!settings::getBool(settings::kAudioMonitorScene, true))
+        return;
+    std::string sceneName;
+    if (ensureMonitorScene(sceneName))
+        blog(LOG_INFO, "[soundgrid] monitor de audio en el Multiview listo: %s", placementAdvice(sceneName).c_str());
+}
+
+} // namespace
+
+void setupAudioMonitorScene()
+{
+    std::string sceneName;
+    const bool created = ensureMonitorScene(sceneName);
     std::string msg = std::string(created ? T_("AudioMonitorCreated") : T_("AudioMonitorExists")) + "\n\n" +
-                      describePlan(plan, layout, sceneName) + "\n\n" + T_("AudioMonitorSafety");
+                      placementAdvice(sceneName) + "\n\n" + T_("AudioMonitorSafety");
     showMessage(T_("AudioMonitorMenu"), msg);
 }
 
@@ -947,6 +1029,9 @@ void audioMonitorFrontendEvent(enum obs_frontend_event event)
     }
     case OBS_FRONTEND_EVENT_FINISHED_LOADING:
     case OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED:
+        autoCreateMonitorScene();
+        refreshFollowed();
+        break;
     case OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED:
     case OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED:
         refreshFollowed();

@@ -1,12 +1,17 @@
 # Notas de versión
 
-## Sin publicar
+## 0.4.0 (23 de noviembre de 2026): monitor de audio en el Multiview
+
+**Autores:** Mateo Salazar (monitor de audio, PR #2) y Joan Palacio.
 
 ### Nuevo
-- **Monitor de audio en el Multiview** ([docs/AUDIO_MONITOR.md](AUDIO_MONITOR.md), ADR-016): una escena que se coloca en el recuadro inferior derecho del Multiview y muestra el audio de la fuente SoundGrid de la escena al aire. Incluye medidores L/R verde, amarillo y rojo con escala en dBFS y peak hold, un osciloscopio que avanza de derecha a izquierda, Peak y RMS en dBFS, un indicador de clip y el nombre de la fuente. Se crea desde **Herramientas > SoundGrid: monitor de audio en el Multiview**. Si la escena del monitor llega a programa o vista previa, el plugin vuelve a la escena anterior.
-- Pruebas: 35 unitarias (`test_audio_monitor.cpp`) y una de render real por GPU con libobs (`obs_monitor_render_test.cpp`, MON01–MON10). Probado en macOS 26 con OBS 33.0.2: el Multiview dibuja el monitor y sigue la escena al aire. Sin probar en Windows.
+- **Monitor de audio en el Multiview** ([docs/AUDIO_MONITOR.md](AUDIO_MONITOR.md), ADR-016): una escena que se coloca en el recuadro inferior derecho del Multiview y muestra el audio de la fuente SoundGrid de la escena al aire. Incluye medidores L/R verde, amarillo y rojo con escala en dBFS y peak hold, un osciloscopio que avanza de derecha a izquierda, Peak y RMS en dBFS, un indicador de clip y el nombre de la fuente. **La escena del monitor se crea sola al abrir OBS**: no hay que crear nada para verlo en el Multiview (se puede desactivar en las propiedades del monitor). Si la escena del monitor llega a programa o vista previa, el plugin vuelve a la escena anterior.
+- Pruebas: 35 unitarias (`test_audio_monitor.cpp`) y una de render real por GPU con libobs (`obs_monitor_render_test.cpp`, MON01–MON10). Probado en macOS 26 con OBS 33.0.2 y en Windows 11 con OBS 33.0.1 (Direct3D 11): el Multiview dibuja el monitor y sigue la escena al aire.
 
 ### Corregido
+- **La protección del monitor podía sacar del aire una escena del director.** Contaba como escena del monitor cualquier escena que contuviera la fuente del monitor; ahora solo la escena que crea el plugin (marca interna). Las escenas del director nunca se revierten.
+- Prueba de render del monitor en Windows: no encontraba `libobs-d3d11` (faltaba la carpeta de `obs.dll` en la búsqueda de DLL), chocaba con las macros `near`/`far` de `windows.h` y buscaba `obs-text` en la ruta de OBS anterior a la 33 (`obs-plugins/64bit` en vez de `core/obs-text`).
+- Avisos C4244 de MSVC en `test_audio_monitor.cpp`.
 - Los ajustes globales del plugin (`settings.json`) no se liberaban al cerrar OBS (5 fugas de memoria en el log de cierre de OBS).
 - **macOS y Linux: la vigilancia global se evaluaba una sola vez, al arrancar OBS.** En Windows la reevalúa cada ~5 s el temporizador de la barra roja, que en macOS no existe. Ahora un hilo propio la reevalúa cada 5 s: reintenta si el driver Waves aparece con OBS abierto y se pausa o reanuda al añadir o quitar una fuente SoundGrid visible. Compilado y cargado en OBS 33.0.2 en macOS (sin driver Waves instalado); sin probar con hardware Waves.
 

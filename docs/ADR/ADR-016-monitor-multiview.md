@@ -9,15 +9,16 @@
 
 **Decisión:**
 - Fuente de vídeo `soundgrid_audio_monitor` (sin Qt, API gráfica de libobs) del tamaño del lienzo, dentro de una escena propia, "Monitor de audio SoundGrid". El Multiview la dibuja como cualquier escena.
-- **Herramientas > SoundGrid: monitor de audio en el Multiview** crea la escena y calcula, según el diseño de Multiview configurado y las escenas ocultas, en qué posición de la lista debe arrastrarla el operador para que ocupe el último recuadro (abajo a la derecha salvo en "Horizontal, abajo" y "Vertical, derecha").
+- **La escena se crea sola** al terminar de cargar OBS y al cambiar de colección de escenas, si falta (ajuste global `audio_monitor_scene_auto`, activo por defecto; se desactiva en las propiedades del monitor). Así el monitor está en el Multiview sin pasos manuales. Una escena con el mismo nombre que ya contenga el monitor (versiones anteriores) se adopta; si el nombre lo usa otra cosa, se usa «… (2)».
+- **Herramientas > SoundGrid: monitor de audio en el Multiview** crea la escena si falta y calcula, según el diseño de Multiview configurado y las escenas ocultas, en qué posición de la lista debe arrastrarla el operador para que ocupe el último recuadro (abajo a la derecha salvo en "Horizontal, abajo" y "Vertical, derecha").
 - La fuente que se muestra es la SoundGrid visible que esté más arriba en la escena de programa (o vista previa, o una fuente fija), incluidos grupos y escenas anidadas. La escena al aire se toma de los eventos del frontend en el hilo de interfaz, no del hilo de gráficos.
 - El audio es el que el plugin entrega a OBS (antes de filtros y del volumen del mezclador): es lo que manda la consola. Si OBS silencia la fuente, la cabecera lo indica en ámbar.
 - Estilo de OBS: colores y niveles del medidor de volumen de OBS (verde < −20 dBFS, amarillo hasta −9, rojo; caída 11,76 dB/s; peak hold 20 s; marca de RMS negra); marco y rojo de programa del Multiview; textos con las mismas fuentes de texto privadas que el Multiview (`text_ft2_source` / `text_gdiplus`).
-- **Protección:** si la escena del monitor llega a programa o a vista previa (un clic en el Multiview), el plugin vuelve a la escena anterior. Nunca debe salir en la emisión.
+- **Protección:** si la escena del monitor llega a programa o a vista previa (un clic en el Multiview), el plugin vuelve a la escena anterior. Nunca debe salir en la emisión. Solo cuenta como escena del monitor la que lleva la marca privada `sg_audio_monitor_scene`: una escena del director que contenga la fuente del monitor no se revierte (revertirla cambiaría de escena en pleno directo).
 - La lógica (historial, niveles, balística, columnas de la forma de onda, distribución, selección de fuente, plan del Multiview) está en `sg_core` (`src/monitor/`) con pruebas unitarias; la capa OBS solo dibuja. Una prueba con libobs real renderiza por GPU y comprueba los píxeles.
 
 **Consecuencias:**
-- El operador mueve la escena a mano una vez (OBS no tiene API de orden). Si hay menos escenas que recuadros, el monitor queda en el primer recuadro libre.
+- La escena se añade al final de la lista. Para que ocupe el último recuadro, el operador la mueve a mano una vez (OBS no tiene API de orden). Si hay menos escenas que recuadros, el monitor queda en el primer recuadro libre.
 - La escena del monitor aparece en la lista de escenas del director. Con la opción de cambiar de escena con un clic en el Multiview, un clic puede llegar a programa durante un instante antes de que el plugin lo revierta; se recomienda desactivar esa opción en el ordenador del Multiview.
 - La escena que ocupaba el último recuadro deja de verse en el Multiview.
 - El monitor no ve los filtros ni el volumen de OBS.

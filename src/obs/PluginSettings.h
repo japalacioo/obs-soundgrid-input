@@ -6,6 +6,7 @@ namespace sg::settings {
 constexpr const char *kKeepWavesApps = "keep_waves_apps_open";  // reabrir Control Panel y servicio
 constexpr const char *kGlobalMonitor = "global_monitor";        // vigilar el driver sin fuentes
 constexpr const char *kGlobalSilence = "global_monitor_silence"; // incluir silencio prolongado (A01)
+constexpr const char *kAudioMonitorScene = "audio_monitor_scene_auto"; // crear la escena del monitor al abrir OBS
 
 bool getBool(const char *key, bool def);
 void setBool(const char *key, bool value); // persiste al instante

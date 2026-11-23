@@ -2,7 +2,8 @@
 // Monitor de audio para el Multiview de OBS: fuente de video "soundgrid_audio_monitor" que dibuja
 // los medidores L/R, el osciloscopio, Peak/RMS, el aviso de clip y el nombre de la fuente SoundGrid
 // de la escena al aire. OBS no permite a un plugin cambiar un recuadro del Multiview, así que el
-// monitor vive en una escena propia que el operador coloca en el último recuadro (ADR-016).
+// monitor vive en una escena propia, marcada por el plugin, que se crea sola al abrir OBS (ajuste
+// global, activo por defecto) y nunca puede salir al aire (ADR-016).
 #include <obs-module.h>
 #include <obs-frontend-api.h>
 

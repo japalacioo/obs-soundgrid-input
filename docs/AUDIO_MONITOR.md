@@ -20,17 +20,20 @@ El audio es el que el plugin entrega a OBS, antes de los filtros y del volumen d
 
 ## Configuración
 
-1. **Herramientas > SoundGrid: monitor de audio en el Multiview.** Se crea la escena «Monitor de audio SoundGrid» y aparece un mensaje que indica en qué posición de la lista de escenas colocarla, según el diseño de Multiview (Ajustes > General > Multiview) y las escenas ocultas en el Multiview.
-2. Arrastra la escena a esa posición. Con el diseño por defecto, «Horizontal, arriba (8 escenas)», es la 8.ª escena visible.
-3. En las propiedades de la fuente «Monitor de audio SoundGrid (Multiview)» puedes elegir:
+No hace falta crear ninguna escena. **Al abrir OBS** (y al cambiar de colección de escenas), el plugin crea la escena «Monitor de audio SoundGrid» si falta, con el monitor dentro. Basta con abrir el Multiview (**Vista > Abrir vista múltiple**). El log de OBS indica en qué recuadro queda.
+
+1. Opcional: para que quede en el último recuadro, arrastra la escena a la posición que indica **Herramientas > SoundGrid: monitor de audio en el Multiview** (o el botón **Colocar en el Multiview…** de la fuente), según el diseño de Multiview (Ajustes > General > Multiview) y las escenas ocultas. Con el diseño por defecto, «Horizontal, arriba (8 escenas)», es la 8.ª escena visible.
+2. En las propiedades de la fuente «Monitor de audio SoundGrid (Multiview)» puedes elegir:
    - **Mostrar la fuente SoundGrid de:** la escena de programa (por defecto), la vista previa (modo estudio) o una fuente fija.
    - **Segundos de forma de onda.**
+   - **Crear esta escena al abrir OBS (en todo OBS)**, activado por defecto. Si lo desactivas y borras la escena, no se vuelve a crear.
 
 En cada escena se usa la fuente SoundGrid visible que esté más arriba en la lista de fuentes, incluidas las que están dentro de grupos o de escenas anidadas.
 
 ## Avisos
 
 - La escena del monitor aparece en la lista de escenas del director. Si alguien la pulsa (también desde el Multiview), el plugin vuelve inmediatamente a la escena anterior en programa y en vista previa, y lo registra en el log. Para evitar incluso ese cambio breve, desactiva en el ordenador del Multiview la opción de cambiar de escena con un clic (Ajustes > General > Multiview).
+- Esa protección solo se aplica a la escena que creó el plugin (lleva una marca interna). Si añades la fuente del monitor a una escena tuya, esa escena puede salir al aire con normalidad.
 - La escena que antes ocupaba el último recuadro deja de verse en el Multiview.
 - Si hay menos escenas que recuadros, el monitor queda en el primer recuadro libre, no en la esquina. Elige un diseño de Multiview con menos recuadros.
 - En los diseños «Horizontal, abajo» y «Vertical, derecha», el último recuadro de escena no es la esquina inferior derecha.

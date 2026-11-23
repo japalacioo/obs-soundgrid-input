@@ -345,7 +345,7 @@ TEST(AudioMonitor_Waveform, ScrollsRightToLeftAsTimeAdvances)
     const int b = burstColumn(t + 1 * kSec);
     ASSERT_GE(a, 0);
     ASSERT_GE(b, 0);
-    EXPECT_NEAR(a, (burst - (t - 5 * kSec)) * 1000 / (5 * kSec), 1);
+    EXPECT_NEAR(a, static_cast<double>((burst - (t - 5 * kSec)) * 1000 / (5 * kSec)), 1);
     EXPECT_NEAR(a - b, 200, 1); // 1 s = 1/5 del ancho
 }
 
@@ -383,7 +383,7 @@ TEST(AudioMonitor_Waveform, DegenerateArguments)
 
 TEST(AudioMonitor_Layout, FitsCommonCanvasesWithoutOverlaps)
 {
-    const std::pair<float, float> sizes[] = {{1920, 1080}, {1280, 720}, {3840, 2160}, {1080, 1920}, {640, 360}};
+    const std::pair<float, float> sizes[] = {{1920.f, 1080.f}, {1280.f, 720.f}, {3840.f, 2160.f}, {1080.f, 1920.f}, {640.f, 360.f}};
     for (auto [w, h] : sizes) {
         SCOPED_TRACE(std::to_string(int(w)) + "x" + std::to_string(int(h)));
         const MonitorLayout l = computeLayout(w, h);

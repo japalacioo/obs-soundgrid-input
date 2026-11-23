@@ -44,7 +44,7 @@ El plugin **requiere el driver de Waves**: no habla el protocolo SoundGrid por s
 
 ## Estado del proyecto
 
-Versión **0.3.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md).
+Versión **0.4.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md).
 
 - **Probado con hardware Waves (parcial):** audio de una LV1 Classic V17 por el driver SoundGrid V17 hasta OBS 33.0.1 en Windows 11; avisos de silencio y recuperación con la consola real.
 - **Sin probar todavía:** sesiones largas con la consola, reconexión con audio real, confirmación del patch con un operador y macOS.

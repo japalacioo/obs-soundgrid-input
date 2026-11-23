@@ -21,6 +21,18 @@
 #include <thread>
 #include <vector>
 
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#undef near // windows.h define near/far como macros vacías
+#undef far
+#endif
+
 using namespace sg::monitor;
 
 namespace {
@@ -189,6 +201,18 @@ int main()
     oai.samples_per_sec = 48000;
     oai.speakers = SPEAKERS_STEREO;
     CHECK(obs_reset_audio(&oai), "ENV", "obs_reset_audio 48 kHz estéreo");
+
+#if defined(_WIN32)
+    // libobs carga libobs-d3d11 y los módulos con LOAD_LIBRARY_SEARCH_*: no busca en PATH. Se añade la
+    // carpeta de obs.dll, como hace OBS con la suya (igual que obs_host_test.cpp).
+    if (HMODULE h = GetModuleHandleW(L"obs.dll")) {
+        wchar_t path[MAX_PATH];
+        GetModuleFileNameW(h, path, MAX_PATH);
+        std::wstring dir(path);
+        dir = dir.substr(0, dir.find_last_of(L"\\/"));
+        AddDllDirectory(dir.c_str());
+    }
+#endif
 
     obs_video_info ovi{};
     ovi.graphics_module = SG_GRAPHICS_MODULE;
