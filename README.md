@@ -35,6 +35,7 @@ El plugin **requiere el driver de Waves**: no habla el protocolo SoundGrid por s
 - **Configuración guiada**: detecta el driver Waves y la tarjeta de red que usa su Control Panel.
 - **Mantiene abiertos** el SoundGrid Driver Control Panel y el servicio de Waves, y los reabre si se cierran (minimizados, sin quitar el foco a OBS).
 - **Alertas A01–A10** con causa raíz (un cable suelto produce un solo aviso), reconexión automática del receptor y registros sin IP ni MAC.
+- **Monitor de audio en el Multiview**: en el recuadro inferior derecho, medidores L/R, osciloscopio, Peak/RMS, indicador de clip y nombre de la fuente SoundGrid de la escena al aire, para el operador de la consola ([docs/AUDIO_MONITOR.md](docs/AUDIO_MONITOR.md)).
 - **Nunca modifica la consola**: no cambia patch, reloj, ganancia ni escenas de la LV1.
 
 | Panel de la fuente | Sin fuentes: Herramientas > SoundGrid Monitor |
@@ -57,6 +58,7 @@ Versión **0.3.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md
 |---|---|
 | Instalar, actualizar, desinstalar y primera configuración | [docs/INSTALL.md](docs/INSTALL.md) |
 | Avisos y alertas | [docs/ALERTS.md](docs/ALERTS.md) |
+| Monitor de audio en el Multiview | [docs/AUDIO_MONITOR.md](docs/AUDIO_MONITOR.md) |
 | Problemas frecuentes | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |
 | Ejemplos de uso (Main L/R, bus de streaming, stems) | [docs/PROFILES.md](docs/PROFILES.md) |
 | Limitaciones conocidas | [docs/LIMITATIONS.md](docs/LIMITATIONS.md) |

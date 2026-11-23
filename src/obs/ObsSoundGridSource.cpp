@@ -8,6 +8,7 @@
 #include "ObsSettingsStore.h"
 #include "platform/INetworkTelemetry.h"
 #include "platform/WavesDriverPrefs.h"
+#include "monitor/AudioScope.h"
 
 #include <obs-frontend-api.h>
 #include <util/platform.h>
@@ -76,6 +77,8 @@ struct SgSource {
     bool streamFault = false; // botón de simulación (solo dispositivo simulado)
     std::atomic<bool> bannerEnabled{true};
     std::atomic<bool> usesWaves{false};
+    // Copia del audio entregado a OBS para el monitor de audio del Multiview (AudioMonitorSource).
+    std::shared_ptr<monitor::AudioScopeTap> scopeTap = std::make_shared<monitor::AudioScopeTap>();
 };
 
 bool isWavesDevice(const std::string &deviceId)
@@ -244,8 +247,13 @@ void *create(obs_data_t *settings, obs_source_t *source)
     }
     readUiFlags(src, settings);
     const std::vector<float> *zeros = &src->zeros;
+    std::shared_ptr<monitor::AudioScopeTap> tap = src->scopeTap;
     src->session = std::make_shared<SourceSession>(*src->rt, obs_source_get_name(source),
-                                                   [source, zeros](const PcmBlock &b) { outputBlock(source, *zeros, b); });
+                                                   [source, zeros, tap](const PcmBlock &b) {
+                                                       tap->push(b.planes, b.channels, b.frames, b.sampleRate,
+                                                                 b.timestampNs);
+                                                       outputBlock(source, *zeros, b);
+                                                   });
     src->rt->monitor().add(src->session);
     src->session->apply(configFromSettings(settings));
     applyMockSignal(src, settings);
@@ -789,6 +797,15 @@ std::vector<BannerSourceInput> collectBannerInputs()
         if (auto g = globalMonitorBannerInput())
             out.push_back(std::move(*g));
     return out;
+}
+
+std::shared_ptr<monitor::AudioScopeTap> soundGridScopeTap(obs_source_t *source)
+{
+    std::lock_guard lk(g_srcMu);
+    for (SgSource *src : g_sources)
+        if (src->source == source)
+            return src->scopeTap;
+    return nullptr;
 }
 
 bool visibleWavesSourceExists()

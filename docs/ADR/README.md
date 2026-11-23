@@ -17,3 +17,4 @@
 | [ADR-013](ADR-013-persistencia-alertas.md) | Persistencia de configuración y de alertas | Aceptada |
 | [ADR-014](ADR-014-ui-sin-qt.md) | Panel SoundGrid Monitor sin Qt | Aceptada (provisional) |
 | [ADR-015](ADR-015-sdk-libobs-local.md) | Compilar contra la instalación de OBS mediante un SDK local | Aceptada |
+| [ADR-016](ADR-016-monitor-multiview.md) | Monitor de audio en el Multiview como escena propia | Aceptada |

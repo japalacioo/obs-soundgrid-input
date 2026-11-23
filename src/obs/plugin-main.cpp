@@ -1,5 +1,7 @@
 // Punto de entrada del módulo OBS "obs-soundgrid-input".
 #include "AlertBanner.h"
+#include "AudioMonitorSource.h"
+#include "PluginSettings.h"
 #include "GlobalMonitor.h"
 #include "ObsSoundGridSource.h"
 #include "WavesWatchdog.h"
@@ -48,6 +50,11 @@ void toolsMenu(void *)
     sg::openSoundGridMonitor();
 }
 
+void audioMonitorMenu(void *)
+{
+    sg::setupAudioMonitorScene();
+}
+
 void openWavesPanelMenu(void *)
 {
     blog(LOG_INFO, "[soundgrid] %s", sg::openWavesControlPanelNow().c_str());
@@ -56,6 +63,7 @@ void openWavesPanelMenu(void *)
 // El aviso rojo se crea cuando la ventana principal ya existe y se retira antes de cerrarla.
 void onFrontendEvent(enum obs_frontend_event event, void *)
 {
+    sg::audioMonitorFrontendEvent(event); // escena al aire para el monitor del Multiview
     if (event == OBS_FRONTEND_EVENT_FINISHED_LOADING) {
         sg::startGlobalMonitor(); // escucha el driver Waves aunque no haya fuentes
         sg::startAlertBanner();
@@ -82,8 +90,10 @@ bool obs_module_load(void)
     rt->transports().setMockConfig(mock);
     sg::setPluginRuntime(rt);
     sg::registerSoundGridSource();
+    sg::registerAudioMonitorSource();
     obs_frontend_add_tools_menu_item(obs_module_text("SoundGridMonitor"), toolsMenu, nullptr);
     obs_frontend_add_tools_menu_item(obs_module_text("OpenWavesPanel"), openWavesPanelMenu, nullptr);
+    obs_frontend_add_tools_menu_item(obs_module_text("AudioMonitorMenu"), audioMonitorMenu, nullptr);
     obs_frontend_add_event_callback(onFrontendEvent, nullptr);
 
     std::string backends;
@@ -101,9 +111,11 @@ void obs_module_unload(void)
     sg::stopWavesWatchdog();
     sg::stopAlertBanner();
     sg::stopGlobalMonitor();
+    sg::stopAudioMonitor();
     auto rt = sg::pluginRuntime();
     sg::setPluginRuntime(nullptr);
     if (rt)
         rt->shutdown();
+    sg::settings::release();
     blog(LOG_INFO, "[soundgrid] descargado");
 }
