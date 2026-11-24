@@ -79,6 +79,10 @@ Requisitos: Xcode Command Line Tools, CMake 3.28+, Git y OBS Studio 30+ en `/App
 
 Las contribuciones se publican bajo la licencia del proyecto, **GPLv3 o posterior**.
 
+## Publicar una versión
+
+Los pasos para compilar, probar y subir los instaladores de Windows y macOS a una misma release están en [docs/RELEASING.md](docs/RELEASING.md).
+
 ## Integración continua
 
 `.github/workflows/ci.yml` está definida pero **se ejecuta a mano** (Actions > ci > Run workflow) porque aún no se ha validado en los runners de GitHub. Las pruebas con hardware Waves nunca se ejecutan en CI.

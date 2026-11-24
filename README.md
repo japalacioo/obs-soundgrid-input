@@ -101,6 +101,7 @@ Versión **0.4.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md
 |---|---|
 | Arquitectura y decisiones | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [ADR](docs/ADR/README.md) |
 | Pruebas | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) · [docs/TEST_REPORT.md](docs/TEST_REPORT.md) · [HIL](tests/hil/HIL_PROCEDURE.md) |
+| Publicar una versión (Windows y macOS) | [docs/RELEASING.md](docs/RELEASING.md) |
 | Viabilidad y compatibilidad | [docs/FEASIBILITY.md](docs/FEASIBILITY.md) · [docs/COMPATIBILITY_MATRIX.md](docs/COMPATIBILITY_MATRIX.md) |
 | Especificación de diseño original | [Plan](PLAN_AGENTE_OBS_WAVES_LV1_CLASSIC_V17_WINDOWS_MACOS.md) · [SDD](SDD_AGILES_OBS_SOUNDGRID_WINDOWS_MACOS.md) · [specs/](specs/) |
 | Contribuir | [CONTRIBUTING.md](CONTRIBUTING.md) |
@@ -171,7 +172,7 @@ packaging/          instalador (Inno Setup) y ZIP de Windows; .pkg y ZIP univers
 
 ## English summary
 
-OBS Studio plugin that captures audio from a **Waves eMotion LV1 Classic V17** console through the **Waves SoundGrid Driver V17** (ASIO, Windows) and shows a **red banner at the top of OBS** when audio is lost (no samples, driver lost, cable unplugged or prolonged silence), even with no source added. It also keeps the SoundGrid Driver Control Panel open and adds an **audio monitor to the OBS Multiview** for the console operator: L/R meters with dBFS scale and peak hold, a scrolling oscilloscope, Peak/RMS, a clip indicator and the name of the SoundGrid source of the on-air scene. Download the Windows installer or the experimental universal macOS `.pkg` from [Releases](https://github.com/japalacioo/obs-soundgrid-input/releases/latest); the installer and the plugin UI are available in English and Spanish. Status: laboratory, partially tested with real Waves hardware. Not affiliated with Waves Audio. License: GPLv3.
+OBS Studio plugin that captures audio from a **Waves eMotion LV1 Classic V17** console through the **Waves SoundGrid Driver V17** (ASIO on Windows; Core Audio on macOS, experimental) and shows a **red banner at the top of OBS** when audio is lost (no samples, driver lost, cable unplugged or prolonged silence), even with no source added. It also keeps the SoundGrid Driver Control Panel open and adds an **audio monitor to the OBS Multiview** for the console operator: L/R meters with dBFS scale and peak hold, a scrolling oscilloscope, Peak/RMS, a clip indicator and the name of the SoundGrid source of the on-air scene. Download the Windows installer or the experimental universal macOS `.pkg` from [Releases](https://github.com/japalacioo/obs-soundgrid-input/releases/latest); the installer and the plugin UI are available in English and Spanish. On macOS there is no red banner yet (alerts go to the source panel and the OBS log) and it has not been tested with Waves hardware. Status: laboratory, partially tested with real Waves hardware on Windows. Not affiliated with Waves Audio. License: GPLv3.
 
 ## Créditos y licencia
 
