@@ -63,7 +63,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 | T19 | Sin abrir el panel con el driver ya configurado | NOT_RUN | Persistencia no documentada por Waves |
 | T20 | Sin driver ni panel (ruta B) | BLOCKED | Protocolo propietario ([NATIVE_FEASIBILITY.md](NATIVE_FEASIBILITY.md)) |
 | T21 | Desconexión sin ruido dañino | NOT_RUN | Diseño: silencio seguro (no se emite nada sin frames) |
-| T22 | Instalar y desinstalar | **PASS** (Windows) / NOT_RUN (macOS) | ZIP con SHA-256 verificado → install.ps1 → uninstall.ps1 → sin restos. Instalador `.exe` (Inno Setup): con OBS abierto no instala (código 1); instalación silenciosa como usuario y como administrador (UAC) con código 0, entrada en Aplicaciones y menú Inicio; OBS 33.0.1 carga el plugin; desinstalación sin restos y conservando la configuración del usuario. Sin firma digital |
+| T22 | Instalar y desinstalar | **PASS** (Windows) / **PASS** instalar, NOT_RUN desinstalar (macOS) | ZIP con SHA-256 verificado → install.ps1 → uninstall.ps1 → sin restos. Instalador `.exe` (Inno Setup): con OBS abierto no instala (código 1); instalación silenciosa como usuario y como administrador (UAC) con código 0, entrada en Aplicaciones y menú Inicio; OBS 33.0.1 carga el plugin; desinstalación sin restos y conservando la configuración del usuario. Sin firma digital |
 | T23 | Las sesiones de OBS se conservan tras actualizar | NOT_RUN | No hay versión anterior. Persistencia nativa probada en T09 |
 | T24 | La mezcla de streaming no altera el FOH | NOT_RUN | Por diseño no hay API de escritura (ADR-006) |
 | T25 | A01 con RMS bajo y fuente ARMED | **PASS** | Reloj virtual: se activa a los 10 s, no antes; evidencia en dBFS |
@@ -174,6 +174,29 @@ Fecha: 2026-11-23 · Windows 11 build 26300 · OBS 33.0.1 instalado con `obs-sou
 | Multiview (Horizontal, arriba, 8 escenas) | PASS: el recuadro «Monitor de audio SoundGrid» muestra «SoundGrid LV1 · Escena» con cabecera gris; sin fuente SoundGrid en la escena al aire, cabecera roja «Sin fuente SoundGrid en «Escena»» |
 | Medidores y forma de onda con audio real de la LV1 | NOT_RUN (consola no conectada) |
 
+## Instalador de macOS, v0.4.0
+
+Fecha: 2026-11-23 · Mac con Apple Silicon · macOS 26.6 · OBS 33.0.2 en `/Applications/OBS.app` (interfaz en inglés, en-GB) · Apple clang 21 · CMake 4.5.1 · commit `079da2b` (etiqueta `v0.4.0`). Sin hardware Waves: la señal la da el simulador del plugin.
+
+| Prueba | Resultado |
+|---|---|
+| Compilación desde cero (`build-macos`, Release) y CTest | **141/141 PASS** |
+| `OBS_Monitor_Render` (MON01–MON10) con libobs-opengl | PASS: 27 comprobaciones |
+| `packaging/macos/package.sh build-macos` | Arquitecturas `x86_64 arm64` → `obs-soundgrid-input-0.4.0-macos-universal.pkg` y `.zip`, sin firmar |
+| Instalación con `installer -pkg … -target CurrentUserHomeDirectory` | PASS: solo `obs-soundgrid-input.plugin` 0.4.0 en `~/Library/Application Support/obs-studio/plugins/`; log: «OBS SoundGrid Input 0.4.0 por Joan Palacio cargado» |
+| A. Escena del monitor creada sola (colección nueva sin ella) | PASS: «escena 'SoundGrid Audio Monitor' creada con el monitor de audio» (en un OBS en español se llama «Monitor de audio SoundGrid»); el recuadro aparece en el Multiview |
+| B. Reabrir OBS con la misma colección | PASS: no se crea otra escena |
+| C1. Escena del monitor en vista previa (modo estudio) | PASS: «no puede ir a vista previa: se vuelve a 'Escena B'» |
+| C2. Escena del director con la fuente del monitor dentro, en programa | PASS: sigue al aire, sin reversión |
+| D. Fuente SoundGrid simulada en la escena al aire | PASS: «monitor de audio: muestra 'SG Prueba B'», cabecera gris y medidores en movimiento |
+| Cierre de OBS | PASS: «Number of memory leaks: 0» |
+| Descarga pública desde la release v0.4.0 | PASS: SHA-256 del `.pkg` y del `.zip` iguales a los de sus `.sha256` |
+| Captura Core Audio con el SoundGrid Driver y la LV1 | NOT_RUN (sin hardware Waves en el Mac) |
+| Binario x86_64 en un Mac Intel | NOT_RUN |
+| Desinstalación | NOT_RUN |
+
+Los cambios de escena de C1 y C2 se hicieron por obs-websocket en una configuración temporal de OBS, restaurada después; no se probaron con el ratón en Mac. La colección de prueba se borró.
+
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).
 
@@ -231,6 +254,6 @@ Esta ejecución usó el binario **anterior** a la revisión de código, porque e
 Además, OBS 33.0.1 con interfaz cargó el DLL corregido instalado desde ProgramData: `obs_init_module` tardó 0,68 ms, la descarga fue limpia y OBS salió con código 0.
 
 ## Limitaciones de este informe
-- Las pruebas de macOS no se ejecutaron: no hay Mac. El código Core Audio y NIC de macOS no se ha compilado.
+- macOS solo se probó en Apple Silicon y sin hardware Waves (ver «Instalador de macOS, v0.4.0»). La captura Core Audio con el SoundGrid Driver y la telemetría de red de macOS no se han probado.
 - La CI está definida en `.github/workflows/ci.yml`, pero no se ha ejecutado porque el repositorio no tiene remoto.
 - No hay grabación WAV de evidencia: T02 se verificó analizando el audio entregado por OBS a su callback de captura.

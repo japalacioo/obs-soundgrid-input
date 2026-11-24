@@ -5,7 +5,7 @@ Gracias por tu interés. Este proyecto es un plugin de OBS Studio para recibir a
 ## Informar de un problema
 
 Abre un [issue](https://github.com/japalacioo/obs-soundgrid-input/issues/new/choose) con la plantilla de error e incluye:
-- Versión del plugin, de OBS, de Windows y del SoundGrid Driver.
+- Versión del plugin, de OBS, del sistema (Windows o macOS) y del SoundGrid Driver.
 - Qué esperabas y qué pasó.
 - El diagnóstico exportado (botón **Exportar diagnóstico** del panel) y las líneas `[soundgrid]` del log de OBS (**Ayuda > Archivos de registro**). No contienen IP ni MAC; revísalos igualmente antes de publicarlos.
 
@@ -44,6 +44,32 @@ Requisitos: Visual Studio 2022 con "Desarrollo para escritorio con C++", CMake 3
    Si instalaste antes con el `.exe`, la carpeta es de administrador: usa el instalador generado con `packaging/windows/build-installer.ps1`.
 
 El núcleo (`sg_core`) no depende de OBS ni de Qt y se prueba sin hardware con un simulador de 32 canales. Para medir un driver real en solo lectura: `build/tests/Release/sg_asio_probe.exe SoundGrid 10`.
+
+## Preparar el entorno (macOS)
+
+Requisitos: Xcode Command Line Tools, CMake 3.28+, Git y OBS Studio 30+ en `/Applications/OBS.app`.
+
+1. SDK local de libobs a partir del OBS instalado, en `.deps/obs-sdk`:
+   ```bash
+   tools/make-obs-sdk.sh
+   ```
+2. Configurar, compilar y probar (binario universal; `OBS_Monitor_Render` renderiza por GPU con libobs-opengl):
+   ```bash
+   cmake -S . -B build-macos -DCMAKE_BUILD_TYPE=Release -DSG_OBS_SDK_DIR=$PWD/.deps/obs-sdk
+   ```
+   ```bash
+   cmake --build build-macos -j8 && ctest --test-dir build-macos --output-on-failure
+   ```
+3. Generar el instalador y el ZIP en `dist/` (sin firmar salvo que definas `SG_INSTALLER_ID` y `SG_NOTARY_PROFILE`):
+   ```bash
+   packaging/macos/package.sh build-macos
+   ```
+4. Instalar en tu OBS (cierra OBS antes):
+   ```bash
+   installer -pkg dist/obs-soundgrid-input-0.4.0-macos-universal.pkg -target CurrentUserHomeDirectory
+   ```
+
+`package.sh` imprime las arquitecturas del binario: deben ser `x86_64 arm64` para el sufijo `macos-universal`.
 
 ## Enviar cambios
 

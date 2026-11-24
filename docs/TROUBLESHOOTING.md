@@ -20,8 +20,21 @@ Empieza por el panel **Estado y alertas** (Herramientas > SoundGrid Monitor): ca
 | El nombre de canal no coincide con la LV1 | Comportamiento esperado: no hay API pública de nombres | Lleva tu propia correspondencia (ver PROFILES.md) |
 | No aparece la barra roja al perder el audio | Opción "Mostrar aviso rojo" desactivada, avisos silenciados 10 min, la fuente no está en una escena visible, o macOS/Linux (sin barra todavía) | Revisa 3 · Avisos en el panel; el log de OBS y `alerts.jsonl` registran igualmente la alerta |
 
+## macOS
+
+| Lo que ves | Causa probable | Qué hacer |
+|---|---|---|
+| macOS no deja abrir el `.pkg` ("no se puede verificar el desarrollador") | El instalador no está firmado ni notarizado | **Ajustes del Sistema > Privacidad y seguridad > Abrir igualmente** y vuelve a abrirlo |
+| La fuente "SoundGrid Input" no aparece en OBS | Plugin en otra carpeta, OBS anterior a la 30 o bundle en cuarentena (instalado desde el ZIP) | Debe estar en `~/Library/Application Support/obs-studio/plugins/obs-soundgrid-input.plugin`. Busca `OBS SoundGrid Input` en el log. Si lo copiaste del ZIP: `xattr -dr com.apple.quarantine` sobre esa carpeta |
+| Driver STREAMING pero sin nivel, o el dispositivo no entrega audio | OBS no tiene permiso de micrófono | **Ajustes del Sistema > Privacidad y seguridad > Micrófono**: activa OBS y reinícialo |
+| El driver de Waves no aparece en "Dispositivo" | SoundGrid Driver no instalado, o el dispositivo Core Audio no tiene "SoundGrid" ni "Waves" en el nombre | Instálalo con Waves Central y reinicia. Comprueba en **Configuración de Audio MIDI** el nombre del dispositivo de entrada |
+| La tarjeta de red no sale marcada como "la usa el driver Waves" | En Mac el plugin no lee las preferencias del Control Panel de Waves | Elige a mano en **Tarjeta de red** el puerto que usa el Control Panel |
+| El Control Panel de Waves no se abre solo | En Mac el plugin no abre ni vigila las aplicaciones de Waves | Ábrelo tú. La entrada **Herramientas > Abrir SoundGrid Driver Control Panel** solo deja en el log "no disponible en esta plataforma" |
+| Herramientas > SoundGrid Monitor no abre ninguna ventana | En Mac el estado de la vigilancia global se escribe en el log | Mira las líneas `[soundgrid]` en **Ayuda > Archivos de registro** |
+| No aparece la barra roja | No existe todavía en macOS | Las alertas quedan en el panel de la fuente, en el log y en `alerts.jsonl` |
+
 **Para pedir soporte**, pulsa **Exportar diagnóstico** y adjunta:
-- `%APPDATA%\obs-studio\plugin_config\obs-soundgrid-input\diagnostics.json`
+- `%APPDATA%\obs-studio\plugin_config\obs-soundgrid-input\diagnostics.json` (macOS: `~/Library/Application Support/obs-studio/plugin_config/obs-soundgrid-input/diagnostics.json`)
 - `alerts.jsonl`
 - el log de OBS
 
