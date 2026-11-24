@@ -33,8 +33,20 @@ El plugin **requiere el driver de Waves**: no habla el protocolo SoundGrid por s
 2. Cierra OBS y abre el `.pkg`. Se instala solo para tu usuario, en `~/Library/Application Support/obs-studio/plugins/`, y no pide contraseña.
    - El instalador **no está firmado**: si macOS lo bloquea, ve a **Ajustes del Sistema > Privacidad y seguridad > Abrir igualmente**.
 3. Abre OBS y acepta el permiso de **micrófono**; sin él, Core Audio no entrega audio.
+4. Añade **Fuentes > + > SoundGrid Input (Waves)** y elige a mano la **tarjeta de red** del Control Panel de Waves (en Mac no se detecta sola).
 
-Requisitos: macOS 11 o posterior y OBS Studio 30 o posterior (probado con 33.0.2). En macOS el plugin carga y el monitor del Multiview funciona, pero **no se ha probado con hardware Waves** y todavía no hay barra roja: las alertas salen en el panel de la fuente y en el log. Detalles en [docs/INSTALL.md](docs/INSTALL.md#macos).
+Guía completa, con verificación del archivo, configuración de Waves, actualización, desinstalación, instalación desatendida y ZIP: **[docs/INSTALL.md#macos](docs/INSTALL.md#macos)**.
+
+### Requisitos
+| | |
+|---|---|
+| Sistema | macOS 11 o posterior, Apple Silicon o Intel (probado en macOS 26 con Apple Silicon). El SoundGrid Driver V17 pide macOS 14 Sonoma o posterior |
+| OBS Studio | 30 o posterior (probado con 33.0.2) |
+| Waves | **SoundGrid Driver V17 para Mac** instalado con Waves Central (sin probar con este plugin) |
+| Red | Puerto Ethernet Gigabit (integrado o adaptador USB-C) conectado a la red SoundGrid de la consola |
+| Consola | eMotion LV1 Classic V17 con el driver del Mac asignado en Setup > Inventory |
+
+**Diferencias con Windows:** no se ha probado con hardware Waves en Mac; todavía no hay barra roja (las alertas salen en el panel de la fuente, el log de OBS y `alerts.jsonl`); el plugin no abre el Control Panel de Waves. La vigilancia global y el monitor del Multiview sí funcionan.
 
 ## Qué hace
 

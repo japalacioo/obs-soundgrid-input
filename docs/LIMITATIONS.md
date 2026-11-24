@@ -18,7 +18,11 @@
 8. **Sin control de la consola ni del reloj.** No cambia la frecuencia, el buffer, el patch, la ganancia, el mute ni las escenas.
     - De Waves solo **abre** el Control Panel y el servicio `SGDawNodeService` si están cerrados (Windows, opción por fuente), con el mismo comando que registra Waves. No cambia su configuración: si el driver necesita volver a elegir la tarjeta de red tras asignarlo en la LV1, eso sigue siendo manual.
     - No se ha probado si reabrir el Control Panel por sí solo recupera el audio después de un fallo del driver; lo que transporta el audio es el servicio.
-9. **macOS no validado.** El código Core Audio y NIC de macOS está escrito pero no se ha compilado ni probado. Waves desaconseja grabar en Apple Silicon (cortes intermitentes) y más de 32 canales por el Ethernet integrado del Mac.
+9. **macOS experimental.**
+    - Desde la 0.4.0 hay instalador `.pkg` universal (Apple Silicon e Intel). En macOS 26 con Apple Silicon y OBS 33.0.2 pasan las 141 pruebas automáticas, el plugin carga y el monitor del Multiview funciona con el simulador. En Intel no se ha ejecutado.
+    - **No se ha probado con hardware Waves** ni con el SoundGrid Driver para Mac: ni la captura Core Audio con la LV1 ni la telemetría de red de macOS.
+    - En Mac el plugin no abre ni vigila el Control Panel de Waves y no lee su tarjeta de red: hay que elegirla a mano en la fuente.
+    - Waves desaconseja grabar en Apple Silicon (cortes intermitentes) y más de 32 canales por el Ethernet integrado del Mac.
 10. **Interfaz.**
     - En Windows, la pérdida de audio se muestra con una barra roja en la parte superior de OBS (ADR-014). En macOS y Linux todavía no: el estado está en las propiedades de la fuente.
     - No hay dock Qt. El detalle está en las propiedades de la fuente (Herramientas > SoundGrid Monitor) y se refresca con "Actualizar estado".
@@ -26,5 +30,5 @@
     - Las alertas sonoras y las notificaciones del SO no están implementadas, aunque el plan las considera opcionales y desactivadas por defecto.
 11. **Distribución.**
     - Windows: el binario no está firmado y no hay instalador `.exe`; se distribuye como ZIP con script de instalación por usuario.
-    - macOS: firma y notarización solo con credenciales del propietario.
+    - macOS: el `.pkg` no está firmado ni notarizado (Gatekeeper pide "Abrir igualmente"). Firmar y notarizar requiere las credenciales de desarrollador de Apple del propietario.
 12. **Intel Core Ultra:** Waves no lo soporta para rec/pb.

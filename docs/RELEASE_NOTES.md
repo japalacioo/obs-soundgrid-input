@@ -8,6 +8,12 @@
 - **Monitor de audio en el Multiview** ([docs/AUDIO_MONITOR.md](AUDIO_MONITOR.md), ADR-016): una escena que se coloca en el recuadro inferior derecho del Multiview y muestra el audio de la fuente SoundGrid de la escena al aire. Incluye medidores L/R verde, amarillo y rojo con escala en dBFS y peak hold, un osciloscopio que avanza de derecha a izquierda, Peak y RMS en dBFS, un indicador de clip y el nombre de la fuente. **La escena del monitor se crea sola al abrir OBS**: no hay que crear nada para verlo en el Multiview (se puede desactivar en las propiedades del monitor). Si la escena del monitor llega a programa o vista previa, el plugin vuelve a la escena anterior.
 - Pruebas: 35 unitarias (`test_audio_monitor.cpp`) y una de render real por GPU con libobs (`obs_monitor_render_test.cpp`, MON01–MON10). Probado en macOS 26 con OBS 33.0.2 y en Windows 11 con OBS 33.0.1 (Direct3D 11): el Multiview dibuja el monitor y sigue la escena al aire.
 
+### Instaladores
+- **Windows:** `obs-soundgrid-input-0.4.0-windows-x64-setup.exe` y `obs-soundgrid-input-0.4.0-windows-x64.zip`.
+- **macOS (experimental, nuevo):** `obs-soundgrid-input-0.4.0-macos-universal.pkg` y `obs-soundgrid-input-0.4.0-macos-universal.zip`, binario universal (Apple Silicon e Intel), sin firmar. Instalación por usuario en `~/Library/Application Support/obs-studio/plugins/` ([INSTALL.md](INSTALL.md#macos)). Compilado por Mateo Salazar desde el commit `079da2b`; 141/141 pruebas y MON01–MON10 PASS en macOS 26 con OBS 33.0.2. Sin probar con hardware Waves.
+  - SHA-256 del `.pkg`: `9049b53abcf86b0b80a66f5cb0566add10beafb8f51dd5a4b358694619375a4f`
+  - SHA-256 del `.zip`: `0279f70137cad35bea863983a91e7bfa79c8bb4f060ec4b05aae622cca8344a4`
+
 ### Corregido
 - **La protección del monitor podía sacar del aire una escena del director.** Contaba como escena del monitor cualquier escena que contuviera la fuente del monitor; ahora solo la escena que crea el plugin (marca interna). Las escenas del director nunca se revierten.
 - Prueba de render del monitor en Windows: no encontraba `libobs-d3d11` (faltaba la carpeta de `obs.dll` en la búsqueda de DLL), chocaba con las macros `near`/`far` de `windows.h` y buscaba `obs-text` en la ruta de OBS anterior a la 33 (`obs-plugins/64bit` en vez de `core/obs-text`).

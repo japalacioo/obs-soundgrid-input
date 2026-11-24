@@ -12,6 +12,7 @@ Si una fuente deja de recibir audio aparece una **barra roja en la parte superio
 
 - Un clic en la barra abre el panel de la fuente afectada.
 - Si OBS no está en primer plano, su botón en la barra de tareas parpadea.
+- **macOS y Linux no tienen barra todavía.** Las alertas se detectan igual y quedan en el panel de la fuente, en el log de OBS (`[soundgrid]`) y en `alerts.jsonl`.
 - Se desactiva por fuente con "Mostrar aviso rojo en OBS si se pierde el audio" (activado por defecto). "Silenciar avisos 10 min" también la oculta; la detección sigue.
 - Solo cuentan las fuentes que están en una escena visible (o como audio global).
 - Las demás alertas (red lenta, errores, latencia, clipping, cortes) no muestran la barra: siguen en el panel y en el log.
