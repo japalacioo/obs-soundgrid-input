@@ -297,15 +297,16 @@ std::vector<std::array<Column, 2>> waveformColumns(const std::vector<ScopeBucket
 
 // ------------------------------------------------------------------ distribución
 
-MonitorLayout computeLayout(float W, float H)
+MonitorLayout computeLayout(float W, float H, float textScale)
 {
+    const float ts = std::clamp(textScale, 0.5f, 2.0f);
     MonitorLayout l;
     l.canvas = {0, 0, W, H};
     const float m = std::max(2.0f, std::min(W, H) * 0.035f);
     l.border = std::max(1.0f, H * 0.004f);
     // En el Multiview el recuadro se ve a 1/4 (o menos): textos grandes para leerlos a distancia.
-    l.fontPx = std::min(H * 0.07f, W * 0.04f);
-    l.smallFontPx = std::min(H * 0.048f, W * 0.027f);
+    l.fontPx = std::min(H * 0.07f, W * 0.04f) * ts;
+    l.smallFontPx = std::min(H * 0.048f, W * 0.027f) * ts;
     const float textRow = l.smallFontPx * 1.5f;
 
     l.header = {m, m, W - 2 * m, std::max(l.fontPx * 1.6f, H * 0.1f)};

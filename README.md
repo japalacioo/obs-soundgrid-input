@@ -57,8 +57,9 @@ Guía completa, con verificación del archivo, configuración de Waves, actualiz
 - **Panel de estado** de cada fuente con indicadores independientes: red, driver, audio, patch, consola y latencia. Desde ahí se pueden reconocer alertas, silenciar avisos 10 min (la detección sigue), reconectar el receptor y exportar un diagnóstico.
 - **Mantiene abiertos** el SoundGrid Driver Control Panel y el servicio de Waves, y los reabre si se cierran (minimizados, sin quitar el foco a OBS).
 - **Alertas A01–A10** con causa raíz (un cable suelto produce un solo aviso), perfiles Ensayo, Transmisión y Grabación, reconexión automática del receptor y registros sin IP ni MAC (log de OBS y `alerts.jsonl`).
-- **Monitor de audio en el Multiview**, para el operador de la consola que ve el Multiview en otra pantalla ([docs/AUDIO_MONITOR.md](docs/AUDIO_MONITOR.md)):
-  - Medidores L/R verde, amarillo y rojo (como el medidor de OBS) con escala en dBFS y peak hold; osciloscopio de los últimos segundos que avanza de derecha a izquierda; Peak y RMS en dBFS; indicador de clip; nombre de la fuente y de la escena.
+- **Monitor de audio en el Multiview**, para el operador de la consola que ve el Multiview en otra pantalla ([docs/AUDIO_MONITOR.md](docs/AUDIO_MONITOR.md)). Tiene dos vistas con el mismo estilo (tema oscuro o claro) y se cambia entre ellas en las propiedades, en Herramientas o con un atajo:
+  - **Sonoridad (LUFS)**, según ITU-R BS.1770-4 y al estilo de Youlean Loudness Meter: momentary, short-term, integrated, true peak, LRA, PLR, PSR y DR; historial, distribución y dinámica; objetivos EBU R128, ATSC A/85, streaming, YouTube, podcast, Netflix o personalizado, con alerta de true peak; reinicio y modo compacto para usarlo en una escena. Puede medir la fuente de la escena al aire, una fuente fija o la mezcla maestra.
+  - **Clásica:** medidores L/R verde, amarillo y rojo (como el medidor de OBS) con escala en dBFS y peak hold; osciloscopio de los últimos segundos que avanza de derecha a izquierda; Peak y RMS en dBFS; indicador de clip; nombre de la fuente y de la escena.
   - Muestra la fuente SoundGrid de la escena al aire (o de la vista previa, o una fuente fija), aunque cada escena tenga su propia fuente.
   - La escena del monitor **se crea sola al abrir OBS**. Si alguien la pulsa, el plugin vuelve a la escena anterior para que nunca salga al aire.
 - **Simulador** de 32 canales (tonos, ruido rosa, silencio, impulsos y señal saturada, con fallo de flujo) para probar mapas de canales, stems y alertas sin hardware.
@@ -69,7 +70,11 @@ Guía completa, con verificación del archivo, configuración de Waves, actualiz
 |---|---|
 | ![Panel de configuración](docs/img/panel-conexion.png) | ![Estado de la vigilancia global](docs/img/soundgrid-monitor-global.png) |
 
-![Monitor de audio en el Multiview](docs/img/monitor-audio-multiview.png)
+![Monitor de audio en el Multiview: vista de sonoridad (LUFS)](docs/img/monitor-sonoridad-multiview.png)
+
+| Vista clásica | Sonoridad, modo compacto |
+|---|---|
+| ![Vista clásica del monitor](docs/img/monitor-audio-multiview.png) | ![Vista de sonoridad en modo compacto](docs/img/monitor-sonoridad-compacto.png) |
 
 ## Estado del proyecto
 
@@ -77,7 +82,8 @@ Versión **0.4.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md
 
 - **Probado con hardware Waves (parcial):** audio de una LV1 Classic V17 por el driver SoundGrid V17 hasta OBS 33.0.1 en Windows 11; avisos de silencio y recuperación con la consola real.
 - **Monitor del Multiview:** probado en Windows 11 con OBS 33.0.1 (Direct3D 11) y en macOS 26 con OBS 33.0.2, con el simulador.
-- **Pruebas automáticas:** 142 en Windows y 141 en macOS, todas PASS, incluidas las de libobs real y render por GPU.
+- **Medidor de sonoridad (sin publicar):** probado en macOS 26 con OBS 33.0.2 y el simulador; sin probar en Windows ni con audio real de la LV1.
+- **Pruebas automáticas:** 142 en Windows (v0.4.0) y 176 en macOS con el medidor de sonoridad, todas PASS, incluidas las de libobs real y render por GPU.
 - **Sin probar todavía:** sesiones largas con la consola, reconexión con audio real, confirmación del patch con un operador y macOS con hardware Waves.
 - **No lo uses en un show** sin hacer antes las pruebas de [tests/hil/HIL_PROCEDURE.md](tests/hil/HIL_PROCEDURE.md) en tu sistema. Detalles en [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
@@ -164,7 +170,7 @@ src/transport       IAudioTransport, simulador, DeviceHub y TransportManager
 src/platform        ASIO, NIC y aplicaciones de Waves (Windows); Core Audio y NIC (macOS)
 src/observability   motor de alertas, aviso de audio perdido y registros
 src/core            sesión por fuente, monitor y runtime
-src/monitor         monitor del Multiview: historial, niveles, forma de onda y distribución
+src/monitor         monitor del Multiview: historial, niveles, forma de onda, sonoridad BS.1770-4, estilo y distribución
 src/obs             módulo OBS: fuente, panel, aviso en la ventana, vigilancia global y monitor del Multiview
 tests/              unitarias, integración y render con libobs real, resistencia, sonda HIL
 packaging/          instalador (Inno Setup) y ZIP de Windows; .pkg y ZIP universales de macOS
@@ -172,7 +178,7 @@ packaging/          instalador (Inno Setup) y ZIP de Windows; .pkg y ZIP univers
 
 ## English summary
 
-OBS Studio plugin that captures audio from a **Waves eMotion LV1 Classic V17** console through the **Waves SoundGrid Driver V17** (ASIO on Windows; Core Audio on macOS, experimental) and shows a **red banner at the top of OBS** when audio is lost (no samples, driver lost, cable unplugged or prolonged silence), even with no source added. It also keeps the SoundGrid Driver Control Panel open and adds an **audio monitor to the OBS Multiview** for the console operator: L/R meters with dBFS scale and peak hold, a scrolling oscilloscope, Peak/RMS, a clip indicator and the name of the SoundGrid source of the on-air scene. Download the Windows installer or the experimental universal macOS `.pkg` from [Releases](https://github.com/japalacioo/obs-soundgrid-input/releases/latest); the installer and the plugin UI are available in English and Spanish. On macOS there is no red banner yet (alerts go to the source panel and the OBS log) and it has not been tested with Waves hardware. Status: laboratory, partially tested with real Waves hardware on Windows. Not affiliated with Waves Audio. License: GPLv3.
+OBS Studio plugin that captures audio from a **Waves eMotion LV1 Classic V17** console through the **Waves SoundGrid Driver V17** (ASIO on Windows; Core Audio on macOS, experimental) and shows a **red banner at the top of OBS** when audio is lost (no samples, driver lost, cable unplugged or prolonged silence), even with no source added. It also keeps the SoundGrid Driver Control Panel open and adds an **audio monitor to the OBS Multiview** for the console operator: L/R meters with dBFS scale and peak hold, a scrolling oscilloscope, Peak/RMS, a clip indicator and the name of the SoundGrid source of the on-air scene, or a loudness view (ITU-R BS.1770-4, like Youlean Loudness Meter) with momentary, short-term and integrated LUFS, true peak, LRA, PLR, PSR and DR against EBU R128, ATSC A/85 or streaming targets. Download the Windows installer or the experimental universal macOS `.pkg` from [Releases](https://github.com/japalacioo/obs-soundgrid-input/releases/latest); the installer and the plugin UI are available in English and Spanish. On macOS there is no red banner yet (alerts go to the source panel and the OBS log) and it has not been tested with Waves hardware. Status: laboratory, partially tested with real Waves hardware on Windows. Not affiliated with Waves Audio. License: GPLv3.
 
 ## Créditos y licencia
 
@@ -181,5 +187,6 @@ Desarrollado por **Joan Palacio**.
 Contribuciones de **Mateo Salazar**:
 - Compilación e instalador `.pkg` universal para macOS, y prueba de integración con libobs real en macOS.
 - Monitor de audio en el Multiview (v0.4.0), con sus pruebas unitarias y de render por GPU.
+- Medidor de sonoridad ITU-R BS.1770-4 en el monitor del Multiview y estilo común de sus dos vistas.
 
 Copyright (C) 2026 Joan Palacio. Licencia **GPLv3 o posterior** ([LICENSE](LICENSE)). Incluye cabeceras ASIO del proyecto OBS bajo GPLv3 ([docs/LICENSING.md](docs/LICENSING.md)). Para informar de un problema de seguridad, ver [SECURITY.md](SECURITY.md).

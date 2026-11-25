@@ -197,6 +197,23 @@ Fecha: 2026-11-23 · Mac con Apple Silicon · macOS 26.6 · OBS 33.0.2 en `/Appl
 
 Los cambios de escena de C1 y C2 se hicieron por obs-websocket en una configuración temporal de OBS, restaurada después; no se probaron con el ratón en Mac. La colección de prueba se borró.
 
+## Medidor de sonoridad en el monitor del Multiview (sin publicar)
+
+Fecha: 2026-11-25 · Mac con Apple Silicon · macOS 26.6 · OBS 33.0.2 · rama `feature/loudness-meter`. Sin hardware Waves: la señal la da el simulador del plugin.
+
+| Prueba | Resultado |
+|---|---|
+| CTest completo (`build-macos`, Release) | **176/176 PASS** (141 anteriores + 28 de `test_loudness.cpp` + 7 de `test_loudness_view.cpp`) |
+| EBU Tech 3341, casos 1–5 (momentary, short-term e integrated ±0,1 LU) y EBU Tech 3342, casos 1–4 (LRA ±1 LU) | PASS |
+| True peak: seno a fs/4 desfasado 45° (muestras a −3,01 dBFS) leído entre −0,4 y +0,2 dBTP con ×4 y ×8; senos de 100 Hz a 19 kHz | PASS |
+| Rendimiento: 10 min de estéreo a 48 kHz con true peak ×4 | Unos 0,8 s (≈ 750 veces más rápido que el tiempo real) |
+| `OBS_Monitor_Render`: MON01–MON10 (vista clásica con el estilo nuevo) y MON11–MON17 (vista de sonoridad con el estilo de Youlean: barra gris, objetivo naranja, tarjetas, historial, distribución, alerta de true peak en rojo, reinicio, mezcla maestra, modo compacto, tema claro, cambio de vista) | PASS; 0 asignaciones de libobs sin liberar |
+| OBS real (colección de prueba con 3 escenas y una fuente SoundGrid simulada en cada una; cambios por obs-websocket) | PASS: la escena del monitor se crea sola; la vista de sonoridad sigue la escena al aire («mide SoundGrid LV1 Entrevista»…) y la mezcla maestra; la escena del monitor vuelve a «Camara 1» si llega a programa; los atajos «reiniciar medición» y «cambiar vista» funcionan y conservan la configuración; «Number of memory leaks: 0» al cerrar |
+| Windows (Direct3D 11) | NOT_RUN |
+| Audio real de la LV1 | NOT_RUN |
+
+Las capturas de la documentación (`docs/img/monitor-*.png`) salen de esa prueba en OBS real. La configuración de OBS del equipo se copió antes y se restauró después, con el plugin 0.4.0 instalado.
+
 ## Revisión de código
 Una revisión independiente de concurrencia y tiempo real encontró 12 problemas. El más grave era un bloqueo de la UI al cambiar de dispositivo con audio en marcha, que ninguna prueba cubría. Todos se corrigieron con pruebas de regresión: ver [REVIEW_2026-11-17.md](REVIEW_2026-11-17.md).
 

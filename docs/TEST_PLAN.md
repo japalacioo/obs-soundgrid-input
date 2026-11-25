@@ -13,6 +13,8 @@ El catálogo de casos T01–T57 y sus criterios está en el plan maestro (§5). 
 | Plataforma: NIC y drivers reales sin LV1 | `tests/integration/test_platform_local.cpp` | `platform` | Hardware local; informativas en CI |
 | libobs real (T01, T02, T03, T08, T09, T10, T40, T50) | `tests/integration/obs_host_test.cpp` | `obs` | Requiere OBS instalado (`SG_OBS_BIN_DIR`) |
 | Monitor de audio del Multiview: niveles, balística, forma de onda, distribución, selección por escena, plan del Multiview | `tests/unit/test_audio_monitor.cpp` | `unit` | Cualquier SO, sin hardware |
-| Monitor de audio con render real por GPU (MON01–MON10): colores del medidor, onda, clip, sin señal, textos | `tests/integration/obs_monitor_render_test.cpp` | `obs` | OBS instalado; capturas `monitor_*.bmp` en la carpeta de compilación |
+| Medidor de sonoridad (ITU-R BS.1770-4): coeficientes de ponderación K, EBU Tech 3341 casos 1–5, EBU Tech 3342 (LRA), true peak entre muestras, 5.1, puertas, reinicio, historial, presets y rendimiento | `tests/unit/test_loudness.cpp` | `unit` | Cualquier SO, sin hardware |
+| Estilo común y distribución de la vista de sonoridad (completa y compacta), escala, columnas del historial, temas | `tests/unit/test_loudness_view.cpp` | `unit` | Cualquier SO, sin hardware |
+| Monitor de audio con render real por GPU: vista clásica (MON01–MON10: colores del medidor, onda, clip, sin señal, textos) y de sonoridad (MON11–MON17: barra, objetivo, historial, distribución, PSR, alerta de true peak, reinicio, mezcla maestra, modo compacto, tema claro y cambio de vista) | `tests/integration/obs_monitor_render_test.cpp` | `obs` | OBS instalado; capturas `monitor_*.bmp` en la carpeta de compilación |
 | Resistencia (T42; versión simulada de T17) | `tests/soak/soak_main.cpp` | `soak` | 15 s en CTest; `sg_soak 120` para 2 h |
 | HIL (T12–T21, T24, T44–T47, T56, T57) | `tests/hil/HIL_PROCEDURE.md` | — | LV1 V17 real, fuera de show |

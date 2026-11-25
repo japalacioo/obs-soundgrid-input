@@ -53,8 +53,8 @@ No hay ruta B (SoundGrid nativo): está `BLOQUEADO POR PROTOCOLO` ([NATIVE_FEASI
 | Plataforma | `src/platform` | `AsioTransport` y `WindowsNicTelemetry` (Windows); `CoreAudioTransport` y `MacNicTelemetry` (macOS) |
 | Observabilidad | `src/observability` | `HealthSnapshot`, `AlertEngine`, `AlertDispatcher`, `JsonlAlertLog`, `AlertHistory` |
 | Sesión | `src/core` | `SourceSession` (una por fuente OBS), `HealthMonitor`, `CoreRuntime` |
-| Monitor del Multiview | `src/monitor` | `AudioScopeTap` (historial de 5 ms por cubo), niveles, balística de OBS, columnas de la onda, distribución, selección de fuente por escena y plan del Multiview (ADR-016) |
-| OBS | `src/obs` | Registro del módulo, fuente `soundgrid_input`, propiedades, diagnóstico, fuente de vídeo `soundgrid_audio_monitor` (monitor del Multiview). Única capa que incluye libobs |
+| Monitor del Multiview | `src/monitor` | `AudioScopeTap` (historial de 5 ms por cubo), niveles, balística de OBS, columnas de la onda, distribución, selección de fuente por escena y plan del Multiview (ADR-016). `LoudnessMeter` (ITU-R BS.1770-4: ponderación K, momentary, short-term, integrated, LRA, true peak, PLR, PSR y DR) y `MonitorStyle` (temas y distribución de la vista de sonoridad) (ADR-017) |
+| OBS | `src/obs` | Registro del módulo, fuente `soundgrid_input`, propiedades, diagnóstico, fuente de vídeo `soundgrid_audio_monitor` (monitor del Multiview: vista clásica y de sonoridad). Única capa que incluye libobs |
 
 ## 3. Interfaces y contratos
 
@@ -77,7 +77,8 @@ No hay ruta B (SoundGrid nativo): está `BLOQUEADO POR PROTOCOLO` ([NATIVE_FEASI
 | Control (`TransportManager`, 50 ms) | Abrir y cerrar, eventos del driver, reconexión con backoff, detección de bloqueo. Usa su propio candado de operaciones (`opMu_`) | Tocar la consola; retener el candado de estado mientras llama al driver |
 | Monitor (250 ms) | Instantáneas, reglas A01–A10, NIC con caché | Bloquear el callback |
 | Mantenimiento de la vigilancia global (5 s) | `maintainGlobalMonitor()`: reintentar, pausar o reanudar la sesión global. En Windows lo hace el temporizador de la barra roja (hilo de UI); en macOS y Linux, un hilo propio | Tomar `g_mu` desde `stopGlobalMonitor()` antes de unir el hilo |
-| Gráficos de OBS (monitor del Multiview) | `video_tick`: copia del historial, niveles y textos; `video_render`: medidores, onda y textos | Tocar el driver; esperar al hilo de salida más que el candado corto de `AudioScopeTap` |
+| Gráficos de OBS (monitor del Multiview) | `video_tick`: copia del historial, niveles y textos; `video_render`: medidores, onda, historial de sonoridad y textos | Tocar el driver; esperar al hilo de salida más que el candado corto de `AudioScopeTap` o del medidor de sonoridad |
+| Audio de OBS (vista de sonoridad) | `LoudnessMeter::process` del bloque de la fuente medida (`obs_source_add_audio_capture_callback`) o de la mezcla (`obs_add_raw_audio_callback`), bajo un candado corto | Modificar el audio; asignar memoria (el medidor la reserva al configurarse) |
 | Despachador de alertas | JSONL rotativo, log de OBS, historial | Crecer sin límite (cola de 1024 y descartes contados) |
 | UI de OBS | Propiedades y acciones | Leer PCM |
 

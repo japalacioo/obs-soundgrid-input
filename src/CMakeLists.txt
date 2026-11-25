@@ -15,6 +15,8 @@ add_library(sg_core STATIC
   observability/AlertSink.h observability/AlertSink.cpp
   core/SourceSession.h core/SourceSession.cpp
   monitor/AudioScope.h monitor/AudioScope.cpp
+  monitor/Loudness.h monitor/Loudness.cpp
+  monitor/MonitorStyle.h monitor/MonitorStyle.cpp
   monitor/SceneAudioPicker.h monitor/SceneAudioPicker.cpp
 )
 target_include_directories(sg_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
