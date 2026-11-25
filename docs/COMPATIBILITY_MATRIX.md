@@ -1,4 +1,4 @@
-# Matriz de compatibilidad (v0.3.0, 17 de noviembre de 2026)
+# Matriz de compatibilidad (v0.5.0, 25 de noviembre de 2026)
 
 Estados: `NO_EVALUADO`, `SIMULADO`, `COMPILA`, `PROBADO_LOCAL`, `PROBADO_HIL`, `BLOQUEADO`, `NO_SOPORTADO`.
 `PROBADO_LOCAL` significa probado en el equipo de desarrollo con hardware y drivers reales que **no son Waves**. Solo la captura con Waves en Windows tiene una prueba HIL, y es **parcial**.
@@ -11,7 +11,7 @@ Columnas de macOS actualizadas en la v0.4.0 (23 de noviembre de 2026): Mac con A
 
 | Capacidad | Windows 10/11 x64 | macOS Intel | macOS Apple Silicon |
 |---|---|---|---|
-| Compilar núcleo y pruebas sin hardware | `PROBADO_LOCAL` (142/142 pruebas en 0.4.0) | `COMPILA` (binario universal; pruebas no ejecutadas en Intel) | `PROBADO_LOCAL` (141/141 pruebas en 0.4.0) |
+| Compilar núcleo y pruebas sin hardware | `PROBADO_LOCAL` (177/177 pruebas en 0.5.0) | `COMPILA` (binario universal; pruebas no ejecutadas en Intel) | `PROBADO_LOCAL` (141/141 pruebas en 0.4.0) |
 | Plugin carga en OBS | `PROBADO_LOCAL` en 33.0.1 (GUI real y libobs sin interfaz) | `NO_EVALUADO` | `PROBADO_LOCAL` en 33.0.2 (GUI real y libobs sin interfaz) |
 | Fuente simulada en OBS | `PROBADO_LOCAL` (1 kHz/2 kHz verificados tras OBS) | `NO_EVALUADO` | `PROBADO_LOCAL` (señal visible en el monitor del Multiview) |
 | Captura con un driver de audio real | `PROBADO_LOCAL` con ReaRoute ASIO (16 canales, 48 kHz) | `NO_EVALUADO` (Core Audio compila) | `NO_EVALUADO` (Core Audio compila) |
@@ -21,6 +21,7 @@ Columnas de macOS actualizadas en la v0.4.0 (23 de noviembre de 2026): Mac con A
 | Panel de estado (propiedades) y Herramientas > SoundGrid Monitor | `PROBADO_LOCAL` (propiedades construidas en libobs; menú registrado en la GUI) | `NO_EVALUADO` | `NO_EVALUADO` |
 | Aviso rojo de audio perdido en la ventana de OBS | `PROBADO_LOCAL` (barra Win32, probada con el simulador) | `NO_SOPORTADO` (sin implementar) | `NO_SOPORTADO` |
 | Monitor de audio en el Multiview (0.4.0) | `PROBADO_LOCAL` (Direct3D 11, simulador) | `NO_EVALUADO` | `PROBADO_LOCAL` (OpenGL, simulador; MON01–MON10) |
+| Medidor de sonoridad del monitor (0.5.0) | `PROBADO_LOCAL` (Direct3D 11, simulador; MON11–MON17, sin probar en la interfaz de OBS) | `NO_EVALUADO` | `PROBADO_LOCAL` (OpenGL, simulador; MON11–MON17 y OBS real) |
 | Reapertura del Control Panel y del servicio de Waves | `PROBADO_LOCAL` (Control Panel; el servicio solo con pruebas unitarias) | `NO_SOPORTADO` | `NO_SOPORTADO` |
 | Dock Qt dedicado | `NO_SOPORTADO` en 0.3.0 (ADR-014) | `NO_SOPORTADO` | `NO_SOPORTADO` |
 | Paquete | `PROBADO_LOCAL` (instalador `.exe` y ZIP; instalación y desinstalación verificadas) | `COMPILA` (mismo `.pkg` universal; no instalado en Intel) | `PROBADO_LOCAL` (`.pkg` universal instalado por usuario; OBS lo carga) |

@@ -78,12 +78,12 @@ Guía completa, con verificación del archivo, configuración de Waves, actualiz
 
 ## Estado del proyecto
 
-Versión **0.4.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md).
+Versión **0.5.0** · laboratorio. Ver [notas de versión](docs/RELEASE_NOTES.md).
 
 - **Probado con hardware Waves (parcial):** audio de una LV1 Classic V17 por el driver SoundGrid V17 hasta OBS 33.0.1 en Windows 11; avisos de silencio y recuperación con la consola real.
 - **Monitor del Multiview:** probado en Windows 11 con OBS 33.0.1 (Direct3D 11) y en macOS 26 con OBS 33.0.2, con el simulador.
 - **Medidor de sonoridad (sin publicar):** probado en macOS 26 con OBS 33.0.2 y el simulador; sin probar en Windows ni con audio real de la LV1.
-- **Pruebas automáticas:** 142 en Windows (v0.4.0) y 176 en macOS con el medidor de sonoridad, todas PASS, incluidas las de libobs real y render por GPU.
+- **Pruebas automáticas:** 177 en Windows (v0.5.0, con el medidor de sonoridad) y 176 en macOS, todas PASS, incluidas las de libobs real y render por GPU.
 - **Sin probar todavía:** sesiones largas con la consola, reconexión con audio real, confirmación del patch con un operador y macOS con hardware Waves.
 - **No lo uses en un show** sin hacer antes las pruebas de [tests/hil/HIL_PROCEDURE.md](tests/hil/HIL_PROCEDURE.md) en tu sistema. Detalles en [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
