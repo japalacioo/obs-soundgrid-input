@@ -30,7 +30,7 @@ El instalador de este plugin **no incluye** el driver de Waves ni modifica OBS.
 En PowerShell, en la carpeta de descargas:
 
 ```bash
-powershell -Command "(Get-FileHash .\obs-soundgrid-input-0.4.0-windows-x64-setup.exe -Algorithm SHA256).Hash"
+powershell -Command "(Get-FileHash .\obs-soundgrid-input-0.5.0-windows-x64-setup.exe -Algorithm SHA256).Hash"
 ```
 
 El resultado debe coincidir (sin distinguir mayúsculas) con el texto del archivo `.sha256` y con el que aparece en la página de la versión.
@@ -111,7 +111,7 @@ Se conservan tus escenas y la carpeta de configuración del plugin: `%APPDATA%\o
 ## 8. Instalación desatendida (varios equipos)
 
 ```bash
-obs-soundgrid-input-0.4.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+obs-soundgrid-input-0.5.0-windows-x64-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
 Devuelve 0 si se instaló. Si OBS está abierto, no instala y devuelve un código distinto de 0. Necesita una consola con permisos de administrador.
@@ -157,6 +157,7 @@ El instalador **no incluye** el driver de Waves ni modifica OBS.
 2. En **Assets**, descarga:
    - `obs-soundgrid-input-<versión>-macos-universal.pkg` (el instalador).
    - Opcional: `obs-soundgrid-input-<versión>-macos-universal.pkg.sha256`, para comprobar que el archivo llegó íntegro.
+   - Si la última versión todavía no tiene archivos de macOS (el instalador de Mac se compila después del de Windows), usa el de la [v0.4.0](https://github.com/japalacioo/obs-soundgrid-input/releases/tag/v0.4.0).
 
 #### Comprobar el archivo (opcional)
 

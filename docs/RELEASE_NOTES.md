@@ -1,6 +1,6 @@
 # Notas de versión
 
-## Sin publicar: medidor de sonoridad en el monitor del Multiview
+## 0.5.0 (25 de noviembre de 2026): medidor de sonoridad en el monitor del Multiview
 
 **Autor:** Mateo Salazar.
 
@@ -14,8 +14,12 @@
 - **Conmutador entre la vista clásica y la de sonoridad**: en las propiedades, en Herramientas o con un atajo de teclado, sin perder la configuración.
 - **Estilo común** para las dos vistas, al estilo de Youlean, con tema oscuro y claro y tamaño del texto ajustable. La vista clásica mantiene su funcionamiento y los colores del medidor de OBS.
 
+### Instaladores
+- **Windows:** `obs-soundgrid-input-0.5.0-windows-x64-setup.exe` y `obs-soundgrid-input-0.5.0-windows-x64.zip`.
+- **macOS:** se añadirán a la misma release cuando se compilen en un Mac. Mientras tanto, el instalador de Mac disponible es el de la 0.4.0.
+
 ### Calidad
-- 35 pruebas unitarias nuevas (EBU Tech 3341 casos 1–5, EBU Tech 3342, true peak, 5.1, distribución de la vista) y render por GPU MON11–MON17. macOS 26 con OBS 33.0.2: 176/176 pruebas PASS y prueba en OBS real con el simulador. Windows: sin probar.
+- 35 pruebas unitarias nuevas (EBU Tech 3341 casos 1–5, EBU Tech 3342, true peak, 5.1, distribución de la vista) y render por GPU MON11–MON17. macOS 26 con OBS 33.0.2: 176/176 pruebas PASS y prueba en OBS real con el simulador. Windows 11 con OBS 33.0.1 (Direct3D 11): 177/177 pruebas PASS, incluidas MON01–MON17; sin probar en la interfaz de OBS.
 
 ## 0.4.0 (23 de noviembre de 2026): monitor de audio en el Multiview
 

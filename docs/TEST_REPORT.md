@@ -1,4 +1,4 @@
-# Informe de pruebas, v0.4.0
+# Informe de pruebas, v0.5.0
 
 **Fecha:** 17 de noviembre de 2026 · **Equipo:** i7-1255U, Windows 11 build 26300, OBS 33.0.1, MSVC 19.44, CMake 4.4.3.
 **Hardware Waves:** NINGUNO. No hubo eMotion LV1, SoundGrid Driver V17, switch ni red SoundGrid.
@@ -29,7 +29,7 @@ Para la resistencia de 2 h, ejecuta `build/tests/Release/sg_soak.exe 120 128 32 
 
 | Suite | Resultado |
 |---|---|
-| CTest Release completo (unit, platform, obs, soak) | **142/142 PASS** en v0.4.0 (23 nov; 106/106 en v0.3.0) |
+| CTest Release completo (unit, platform, obs, soak) | **177/177 PASS** en v0.5.0 (25 nov; 142/142 en v0.4.0, 106/106 en v0.3.0) |
 | Unitarias (`sg_unit_tests`) | 100/100 PASS (incluye 7 regresiones de la [revisión de código](REVIEW_2026-11-17.md), 11 del aviso de audio perdido y 7 de la reapertura de Waves) |
 | Plataforma, hardware real (`sg_platform_tests`) | 4/4 PASS (incluye localizar las aplicaciones de Waves) |
 | Integración con libobs 33.0.1 real (`sg_obs_host_test`) | 21/21 comprobaciones PASS (incluye autor, créditos y el panel simplificado) · `bnum_allocs` = 0 al cerrar |
@@ -158,6 +158,20 @@ Fecha: 2026-11-20 · macOS 26.6 en Apple Silicon · OBS 33.0.2 (Homebrew) · dis
 | Windows | Ver la sección siguiente |
 
 Los cambios de escena se hicieron por obs-websocket, activado solo en una configuración temporal de OBS que se borró después. Un clic en el Multiview usa la misma ruta del frontend (`SetCurrentScene`), pero no se probó con el ratón.
+
+## Medidor de sonoridad en Windows, v0.5.0
+
+Fecha: 2026-11-25 · Windows 11 build 26300 · OBS 33.0.1 (libobs sin interfaz) · MSVC 19.44 · Direct3D 11 · commit de la etiqueta `v0.5.0`. Sin hardware Waves: la señal la da el simulador del plugin.
+
+| Prueba | Resultado |
+|---|---|
+| CTest Release completo | **177/177 PASS** (170 unitarias, 4 de plataforma, 2 de libobs real, 1 de resistencia) |
+| Unitarias de sonoridad (`test_loudness.cpp`, `test_loudness_view.cpp`: EBU Tech 3341 casos 1–5, Tech 3342, true peak, 5.1, distribución) | PASS |
+| `obs_monitor_render_test.cpp` MON01–MON17 con libobs-d3d11 | PASS: barra de momentary y objetivo en naranja, historial e integrated, distribución, dinámica (PSR), alerta de true peak, reinicio, mezcla maestra, modo compacto, tema claro, vuelta a la vista clásica y configuración conservada al cambiar de vista |
+| `packaging/windows/build-installer.ps1` y `package.ps1` | `obs-soundgrid-input-0.5.0-windows-x64-setup.exe` y `.zip` con sus `.sha256` |
+| Instalar el `.exe` en OBS con interfaz, Multiview y vista de sonoridad en pantalla | NOT_RUN (no se instaló en el OBS del equipo para esta versión) |
+| Medidor de sonoridad con audio real de la LV1 | NOT_RUN |
+| Compilación | Un aviso C4244 de MSVC en `test_loudness_view.cpp` (línea 13), solo en las pruebas |
 
 ## Monitor de audio en el Multiview (Windows, OBS 33.0.1), v0.4.0
 
