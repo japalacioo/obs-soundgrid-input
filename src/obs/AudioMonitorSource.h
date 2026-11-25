@@ -1,7 +1,7 @@
 #pragma once
-// Monitor de audio para el Multiview de OBS: fuente de video "soundgrid_audio_monitor" que dibuja
-// los medidores L/R, el osciloscopio, Peak/RMS, el aviso de clip y el nombre de la fuente SoundGrid
-// de la escena al aire. OBS no permite a un plugin cambiar un recuadro del Multiview, así que el
+// Monitor de audio para el Multiview de OBS: fuente de video "soundgrid_audio_monitor" con dos vistas
+// del mismo estilo: la clásica (medidores L/R, osciloscopio, Peak/RMS, aviso de clip y nombre de la
+// fuente SoundGrid de la escena al aire) y la de sonoridad (ITU-R BS.1770-4, ADR-017). OBS no permite a un plugin cambiar un recuadro del Multiview, así que el
 // monitor vive en una escena propia, marcada por el plugin, que se crea sola al abrir OBS (ajuste
 // global, activo por defecto) y nunca puede salir al aire (ADR-016).
 #include <obs-module.h>
@@ -19,5 +19,9 @@ void setupAudioMonitorScene();
 // salga al aire si alguien la pulsa en el Multiview.
 void audioMonitorFrontendEvent(enum obs_frontend_event event);
 void stopAudioMonitor(); // al cerrar OBS / descargar el módulo
+// Herramientas: cambia todos los monitores entre la vista clásica y la de sonoridad.
+void toggleAudioMonitorView();
+// Herramientas: reinicia integrated, LRA, máximos e historial de todos los monitores.
+void resetAudioMonitorLoudness();
 
 } // namespace sg

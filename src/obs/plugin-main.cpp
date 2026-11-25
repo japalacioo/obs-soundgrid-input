@@ -55,6 +55,16 @@ void audioMonitorMenu(void *)
     sg::setupAudioMonitorScene();
 }
 
+void audioMonitorToggleMenu(void *)
+{
+    sg::toggleAudioMonitorView();
+}
+
+void audioMonitorResetMenu(void *)
+{
+    sg::resetAudioMonitorLoudness();
+}
+
 void openWavesPanelMenu(void *)
 {
     blog(LOG_INFO, "[soundgrid] %s", sg::openWavesControlPanelNow().c_str());
@@ -94,6 +104,8 @@ bool obs_module_load(void)
     obs_frontend_add_tools_menu_item(obs_module_text("SoundGridMonitor"), toolsMenu, nullptr);
     obs_frontend_add_tools_menu_item(obs_module_text("OpenWavesPanel"), openWavesPanelMenu, nullptr);
     obs_frontend_add_tools_menu_item(obs_module_text("AudioMonitorMenu"), audioMonitorMenu, nullptr);
+    obs_frontend_add_tools_menu_item(obs_module_text("AudioMonitorToggleView"), audioMonitorToggleMenu, nullptr);
+    obs_frontend_add_tools_menu_item(obs_module_text("LufsResetMenu"), audioMonitorResetMenu, nullptr);
     obs_frontend_add_event_callback(onFrontendEvent, nullptr);
 
     std::string backends;

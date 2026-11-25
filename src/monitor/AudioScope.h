@@ -197,6 +197,7 @@ struct MonitorLayout {
     float border = 0;
 };
 // Reserva abajo ~17 % libre: el Multiview dibuja ahí el nombre de la escena.
-MonitorLayout computeLayout(float width, float height);
+// textScale: tamaño de los textos (0,5–2; 1 = el de siempre).
+MonitorLayout computeLayout(float width, float height, float textScale = 1.0f);
 
 } // namespace sg::monitor

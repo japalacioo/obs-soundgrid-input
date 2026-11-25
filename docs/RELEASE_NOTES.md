@@ -1,5 +1,22 @@
 # Notas de versión
 
+## Sin publicar: medidor de sonoridad en el monitor del Multiview
+
+**Autor:** Mateo Salazar.
+
+### Nuevo
+- **Vista de sonoridad (LUFS)** en el monitor del Multiview ([docs/AUDIO_MONITOR.md](AUDIO_MONITOR.md#vista-de-sonoridad-lufs), ADR-017), con el estilo de Youlean Loudness Meter 2 (grafito, tarjetas, objetivo en naranja, historial azul y rojo) y según ITU-R BS.1770-4:
+  - Momentary, short-term, integrated, true peak (×4 u ×8), LRA, PLR, PSR y DR.
+  - Barra de momentary con el triángulo de short-term, historial (momentary, short-term e integrated), distribución de short-term y dinámica (PSR) opcional.
+  - Objetivos: streaming/música, YouTube, podcast, EBU R128, ATSC A/85, Netflix y personalizado, con zona BAJO / EN OBJETIVO / ALTO y alerta de true peak.
+  - Mide la fuente SoundGrid de la escena al aire, una fuente fija (cualquier fuente de audio de OBS) o la mezcla maestra; mono, estéreo o 5.1.
+  - Modo compacto para usarlo en una escena, reinicio (propiedades, Herramientas o atajo) y frecuencia de actualización configurable.
+- **Conmutador entre la vista clásica y la de sonoridad**: en las propiedades, en Herramientas o con un atajo de teclado, sin perder la configuración.
+- **Estilo común** para las dos vistas, al estilo de Youlean, con tema oscuro y claro y tamaño del texto ajustable. La vista clásica mantiene su funcionamiento y los colores del medidor de OBS.
+
+### Calidad
+- 35 pruebas unitarias nuevas (EBU Tech 3341 casos 1–5, EBU Tech 3342, true peak, 5.1, distribución de la vista) y render por GPU MON11–MON17. macOS 26 con OBS 33.0.2: 176/176 pruebas PASS y prueba en OBS real con el simulador. Windows: sin probar.
+
 ## 0.4.0 (23 de noviembre de 2026): monitor de audio en el Multiview
 
 **Autores:** Mateo Salazar (monitor de audio, PR #2) y Joan Palacio.

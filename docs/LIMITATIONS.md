@@ -32,3 +32,8 @@
     - Windows: el binario no está firmado y no hay instalador `.exe`; se distribuye como ZIP con script de instalación por usuario.
     - macOS: el `.pkg` no está firmado ni notarizado (Gatekeeper pide "Abrir igualmente"). Firmar y notarizar requiere las credenciales de desarrollador de Apple del propietario.
 12. **Intel Core Ultra:** Waves no lo soporta para rec/pb.
+13. **Medidor de sonoridad (vista LUFS del monitor).**
+    - Sin dialogue gating: el preset de Netflix (que mide el diálogo) es orientativo.
+    - Sin configuración de canales personalizada, sin exportación de informes y sin análisis de archivos.
+    - El DR es una aproximación (media de PSR): Youlean no publica su algoritmo.
+    - Probado en macOS con el simulador; sin probar en Windows ni con audio real de la LV1.

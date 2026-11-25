@@ -84,6 +84,7 @@ Al abrir OBS, el plugin crea la escena **«Monitor de audio SoundGrid»** si no 
 - Para que quede en el último recuadro (abajo a la derecha), arrastra la escena al final de la lista; con menos escenas que recuadros queda en el primer recuadro libre.
 - Esa escena nunca sale al aire: si alguien la pulsa, el plugin vuelve a la escena anterior. Las escenas del director que contengan el monitor no se tocan.
 - Para que no se cree, desactiva **Crear esta escena al abrir OBS** en las propiedades de la fuente del monitor y borra la escena.
+- **Vista de sonoridad (LUFS):** en las propiedades del monitor, **Vista > Sonoridad**, o **Herramientas > SoundGrid: cambiar vista del monitor de audio**. Mide momentary, short-term, integrated, true peak y LRA respecto a un objetivo (EBU R128, ATSC A/85, streaming…).
 
 Detalle en [AUDIO_MONITOR.md](AUDIO_MONITOR.md).
 
